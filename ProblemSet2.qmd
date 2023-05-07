@@ -256,7 +256,7 @@ In order to interpret the factor we classify the observed variables into five gr
 # il codice non è proprio giusto, non funziona se ci sono due loadings sopra 0.5, qui non è il caso quindi potremmo semplicemente nasconderlo... avevo importato tutto cercando il max
 maximum <- apply(psych.5fa.ml$loadings, 1, max)
 pos.max <- as.data.frame(which(psych.5fa.ml$loadings == maximum, arr.ind = T))
-pos.max <- pos.max %>% dplyr::mutate(load.max = psych.5fa.ml$loadings[as.matrix(pos.max)])
+pos.max <- pos.max %>% dplyr::mutate(load.max = round(psych.5fa.ml$loadings[as.matrix(pos.max)], 3))
 
 group1 <- row.names(dplyr::filter(as.data.frame(pos.max), col == 1, load.max > 0.5))
 
@@ -306,8 +306,11 @@ We can now deal with the variables for with there are some doubts in the classif
 
 In particular, the variables for which we have identified some issues are the following:
 ```{r}
-doubt.var <- c(11,13,16,19,21,22)
-cbind(var.meaning[doubt.var,], psych.5fa.ml$loadings[doubt.var,])
+doubt.var <- round(psych.5fa.ml$loadings[apply(psych.5fa.ml$loadings < 0.5 , 1, sum) == 5, ], 3)
+#doubt.var <- c(11,13,16,19,21,22)
+doubt.var <- cbind(doubt.var, dplyr::filter(var.meaning, var %in% row.names(doubt.var)))
+doubt.var <- dplyr::select(doubt.var, -var)
+doubt.var
 ```
 As we can see, *V11* - that looked a bit "out of context" in group 4, loads high also on the third and fifth factors. Given the previous interpretation, it may be reasonable to insert this variables inside group 5. Indeed, both the speeded code-test and the speeded discrimation of straight and curved uppercase letters may be an observable aspect of an underlying "reasoning speed" factor.
 Even if the "new" interpretation of factor 5 appears more satisfactory, it is important to mention that also variable *V13* has high loadings corresponding not only to factor 5 but also on factors 3. 
