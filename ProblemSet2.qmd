@@ -1,0 +1,493 @@
+---
+title: "ProblemSet2"
+format: pdf
+editor: visual
+---
+
+```{r}
+rm(list=ls())
+```
+
+```{r}
+library(plyr)
+library(tidyverse)
+library(MASS)
+library(ggplot2)
+library(ellipse)
+library(corrplot)
+library(mvShapiroTest)
+library(MVN)
+library(sp)
+```
+
+## Exercise 1
+
+We consider the dat set psych which contains 24 cognitive tests administered to 301 students (with ages ranging from 11 to 16) in a suburb of Chicago: a group of 156 students (74 boys, 82 girls) from the Pasteur School and a group of 145 students (72 boys, 73 girls) from the Grant-White School.
+
+```{r}
+## psych data
+
+setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
+
+psych<-read.table("data/psych.txt",header=T)
+dim(psych)
+head(psych)
+
+with(psych,table(group))
+```
+
+```{r}
+var <- colnames(psych[,4:27])
+meaning <- c("visual perception", "cubes", "paper form board", "flags", "general information", "paragraph comprehension", "sentence completion", "word classification", "word meaning", "addition", "code", "counting dots", "straight-curved capitals", "word recognition", "number recognition", "figure recognition", "object-number", "number-figure", "figure-word", "deduction", "numerical puzzles", "problem reasoning", "series completion", "arithmetic problems")
+
+var.meaning <- as.data.frame(t(rbind(var, meaning)))
+```
+
+#### Use the Grant-White students data. Obtain the maximum likelihood solution for m = 5 and m = 6 factors and compute the proportion of total sample variance due to each factor. List the specific variances, and assess the accuracy of the approximation of the correlation matrix. Compare the results. Which choice of m do you prefer? Why?
+
+First of all we start by filtering the data set in order to retain only those observations corresponding to students from the Grant-White School. Once we have done so, we can remove the variable group from the data set we are going to use in the analysis. Together with group we also discard the variable *Case*, that simply enumerate the collected observations. As a side-note we also observe that the total number of considered cases is 350 whilst we only have 301 observations, suggesting that some students did not attend the test or maybe responded only partially. Finally we convert the variable *Sex* into a binary 0-1 variable.
+
+```{r}
+Grant_White <- psych %>% dplyr::filter(group == "GRANT") %>% dplyr::select(-c(Case, group)) %>% dplyr::mutate(Sex = as.numeric(revalue(Sex, c(F = 1, M = 0))))
+```
+
+The aim of the Factor Analysis is, in essence, to describe - if possible - the covariance relationships among many variables in terms of a few underlying, but unobservable, random variables called factors. Loosely speaking the idea is the following: suppose that the considered variables can be grouped according to their correlation pattern - i.e. that we can cluster the variables in such a way to have high intra-groups correlations and small inter-groups correlations. It seems reasonable to believe that each group of variables may be linked to a single underlying and unobservable factor, which ultimately is the responsible for the observed significant intra-group correlations.
+
+Looking at the psych data set it is conceivable that the results of the "ability" tests performed are just different measures of fewer broad domains like for example verbal or spatial abilities, memory or mathemathical deduction.
+
+We start our analysis by considering the correation matrix:
+
+```{r}
+R <- cor(Grant_White)
+#testRes = cor.mtest(Grant_White, conf.level = 0.95)
+```
+
+It is helpful to plot it:
+
+```{r, fig.width = 7, fig.height = 10}
+corrplot(R, method = 'color', type = 'lower', insig='blank',
+         addCoef.col ='black', number.cex = 0.8, diag=FALSE, col = COL2('RdBu', n = 200))
+```
+
+As we can observe the variables *Sex* and *Age* are low correlated within each other and within all the other variables. This seems to suggests that neither of these variables have a relevant role in affecting the results of the tests. Moreover it seems unlikely to us that sex and age of a student may be explained by some underlying factors. For these reasons, we will consider only the results of the 24 tests.
+
+It may nevertheless be useful, for representative purpose, to color code the observation besed for example on the students' sex
+
+```{r}
+#col <- plyr::revalue(Grant_White$Sex, c(0 = "magenta", 1 = "blue"))
+Grant_White <- Grant_White %>% dplyr::select(- c(Age,Sex))
+
+n <- nrow(Grant_White)
+p <- ncol(Grant_White)
+R <- cor(Grant_White)
+```
+
+Since we will perform a Factor Analysis using the maximum likelihood approach it is important to verify its applicability. In particular we need to check whether or not the data are normally distributed.
+
+```{r}
+x.bar <- colMeans(Grant_White)
+S <- cov(Grant_White)
+
+d = mahalanobis(Grant_White, center = x.bar, cov = S);
+
+ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), y = sort(d))) + 
+ geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
+  expand_limits(x = c(0.0, 60.0)) +
+  ggtitle("Chi-squared QQ-plot of\n squared generalized distancees")
+```
+
+```{r}
+#mvShapiro.Test(as.matrix(scale(Grant_White)))
+multnorm <- mvn(scale(Grant_White))
+multnorm$multivariateNormality
+multnorm <- mvn(scale(Grant_White), mvnTest = "mardia")
+multnorm$multivariateNormality
+```
+
+We can conclude that overall our data may be considered sufficiently normally distributed, even if the distribution of the data is statistically significantly skewed.
+___________________________________________________________________________
+add something more to normality.... maybe skewness not so good?
+___________________________________________________________________________
+
+We can now procede with the maximum likelihood approach to perform the Factor Analysis. As requested we consider and compare the choices of $m=5$ and $m=6$ factors.
+
+```{r}
+m = c(5,6)
+psych.5fa.ml <- factanal(x=Grant_White, factors = m[1], rotation = "none")
+psych.6fa.ml <- factanal(x=Grant_White, factors = m[2], rotation = "none")
+```
+
+```{r}
+L.5.ml <- psych.5fa.ml$loadings; L.5.ml
+L.6.ml <- psych.6fa.ml$loadings; L.6.ml
+```
+
+In particular the proportion of variance explained by each factor is:
+
+```{r}
+x5 <- psych.5fa.ml$loadings
+x6 <- psych.6fa.ml$loadings
+
+vx5 <- colSums(x5^2)
+vx6 <- colSums(x6^2)
+
+rbind(`SS loadings` = round(vx5, 3L),
+      `Proportion Var` = round(vx5/nrow(x5), 3L),
+      `Cumulative Var` = round(cumsum(vx5/nrow(x5)), 3L))
+rbind(`SS loadings` = round(vx6, 3L),
+      `Proportion Var` = round(vx6/nrow(x6), 3L),
+      `Cumulative Var` = round(cumsum(vx6/nrow(x6)), 3L))
+```
+
+As we have seen in the lectures, the proportion of variance explained by each factor indicates how much of the total variability in the original variables is accounted for by that particular factor. Specifically, it represents the proportion of the total variance in the observed variables that can be attributed to that factor. For this reason it is usually used to adress the relevance of the factors and, consequently, as a support to the choice of the number of factors to retain.
+
+As a general guideline we can say that factors that explain a large proportion of the variance in the original variables are considered more important and may be more useful for further analysis. Conversely, factors that explain a small proportion of the variance may be less useful and can potentially be dropped from further analysis. 
+
+Nevertheless it is important to always keep in mind that there is not a univocal way to decide how many factors should we retain. Each situation need to be analyzed separately and other factors - such as interpretability and theoretical considerations - may play a relevent role.
+
+In our situation we can observe that the first factor explains a relevant percentage - the 30% - of the total variability of the data. Therefore we expect it to be in some sense the most important of all factors and to represent an important psychological construct or ability. The other factors account for a much smaller proportion, however they still seem quite significant. Surely the less explainatory ones are the fifth and the sixth factors as they respectively explain the 2.2/2.1% and the 1.7% of the total variance. In particular, the fact that they explain a relatively small but similar proportion of variance seems to suggest that we should reserve the same treatment to both of them - i.e. retain or discard them both. However, as said before, the decision to discard a factor should not be based solely on the proportion of variance it explains, hence before making any further consideration we proceed in our analysis.
+
+Another relevant features to examine are the specific variances, or uniqueness. The $i^{th}$ uniqueness represents the proportion of variance of the $i^{th}$ variable that is not accounted for by the factors. In other words, the specific variances are important because they provide information about the unique contribution of each observed variable to the total variance. Variables with large specific variances are those that are not well accounted for by the underlying factors and may be less useful for further analysis. These variables are also more likely to have weaker factor loadings and may be more difficult to interpret.  On the other hand, variables with small specific variances are those that are well explained by the factors, will have stronger factor loadings and may be more useful for further analysis.
+
+------------------- re-read ------------------------------------------------------------------------------
+For all these reasons, the specific variances can also affect the decision of how many factors to retain in the analysis. If there are many observed variables with high specific variances, this may indicate the necessity to add some extra factors or also that these variables do not share a common underlying factor and may need to be excluded or analyzed separately.
+
+The specific variances can also be used to assess the overall fit of the factor model. If the specific variances are very large, this may indicate that the model is not a good fit for the data and may need to be revised. Alternatively, if the specific variances are very small, this may indicate that the model is overfitting the data and may need to be simplified.
+
+------------------------------------------------------------------------------------
+Overall, specific variances are an important part of the output of factor analysis and can provide valuable information about the quality of the factor model and the interpretation of the results:
+
+```{r}
+uniq <- cbind(psych.5fa.ml$uniquenesses, psych.6fa.ml$uniquenesses)
+
+uniq <- as.data.frame(uniq)
+colnames(uniq) <- c("nfactors_5", "nfactors_6")
+uniq
+```
+
+We are mainly interested in two different aspects:
+- high specific variances;
+- significant difference among the uniquenesses returned using 5 or 6 factors.
+
+For what concerne the higher specific variances, we can observe that there are 11 variables for which both of their uniquenesses are higher than 0.5, specifically:
+```{r}
+uniq %>% dplyr::filter(pmin(nfactors_5, nfactors_6) > 0.5)
+```
+The presence of such a great number of variables with high uniquenesses, may suggests that the model does not fit the data very well
+
+Now, high uniqueness values in a factor analysis indicate that a large proportion of the variance in a variable is not accounted for by the factors extracted from the analysis. This means that the variable is not well explained by the underlying factors and has a unique contribution to the overall variance in the data.
+
+There are several potential reasons why a variable might have a high uniqueness value. One possibility is that the variable is related to an aspect of the phenomenon being studied that is not well captured by the other variables in the analysis. So that the underlying factors that explain the majority of the variables do not suit it. Another possibility is that the variable has measurement error or is affected by "exogenous" elements that are not included in the factor analysis.
+
+Keeping this in mind, it is also important to note that high uniqueness values are not necessarily a problem in themselves. Some variables will naturally have higher uniqueness values than others, depending on their level of specificity or measurement precision. Therefore one should always consider the specific context of the phenomenon being studied.
+
+In our analysis, the presence of such a high number of variables with high uniqueness value may not be so unexpected: the data are related to aptitude tests on students, thus it seems reasonable to expect that the tests also rely heavily on individual abilities of pupils that, the common factor would fail to encode.
+
+Nevertheless it is still significant at least to enhance the presence of three variables whose percentage of variability unexplained by the factors is greater than 70% both when we consider 5 or 6 factors.
+```{r}
+uniq %>% dplyr::filter(pmin(nfactors_5, nfactors_6) > 0.7)
+```
+To be more precise these tests correspond to the "cubes" test (*V2*), that we can immagine being related to the ability of manipulate 3D-object, to the "number recognition" test (*V15*) and to a "figure-word" test, that tackle the ability to memorize ssociations between figures and words.
+
+Let's now look at the variables for which the inclusion of the sixth factors plays a relevant role:
+
+------------------------- revise --------------
+In particular we decided to print the specific variances of the variances for which we the addition of the sixth factor lead to a decrease of the specifi variance greater than 0.02. We also return them in decreasing order: the first variable returned is the one with the greatest positive gap among the two uniquenesses.
+
+Similarly we also filter only the variables for which the presence of the sixth factor entail a significant increase in the uniqueness. As before, we set the arbitrary gap to be at least 0.02. 
+
+---------------------------------------------
+```{r}
+uniq %>% dplyr::filter((nfactors_5 - nfactors_6) > 0.1) %>% dplyr::arrange(desc(nfactors_5 - nfactors_6))
+
+uniq %>% dplyr::filter((nfactors_5 - nfactors_6) < -0.04) %>% dplyr::arrange(nfactors_5 - nfactors_6)
+```
+
+----------------------- revise -----------------
+As we can observe, the variables that are mainly affected by the introduction of a new factor are *V17* - corresponding to a test whose target is the ability to memorize object-number associations - and *V11* - a speeded code-test that consists in transforming shapes into alpha with code. This tells us that the
+
+-------------------------------------------------
+
+We can now assess the approximation of the correlation matrix. To do so we can compute the residual matrix
+$$
+\begin{aligned}
+  \mathbb{R} - \hat{\mathbb{L}}\hat{\mathbb{L}}^T - \hat{\mathbb{\Psi}}
+\end{aligned}
+$$
+
+resulting from the approximation of $\mathbb{R}$ via the simpler structure $\hat{\mathbb{L}}\hat{\mathbb{L}}^T - \hat{\mathbb{\Psi}}$. We can then summarize how far from the perfect approximation we are by computing its Froboenius norm.
+
+```{r}
+Psi.5.ml <- diag(psych.5fa.ml$uniquenesses, p)
+Psi.6.ml <- diag(psych.6fa.ml$uniquenesses, p)
+
+Residual.5.ml <- R - (L.5.ml%*%t(L.5.ml) + Psi.5.ml)
+Residual.6.ml <- R - (L.6.ml%*%t(L.6.ml) + Psi.6.ml)
+
+Frob.res <- cbind(sum(Residual.5.ml^2), sum(Residual.6.ml^2))
+
+row.names(Frob.res) <- "Frobenius norm of the residual matrix: "
+colnames(Frob.res) <- c("nFactors_5", "nFactors_6")
+
+as.data.frame(round(Frob.res, 3))
+```
+
+The obtained norms of the residual matrices for the choice of 5 and 6 factors in in both cases quite high, even if adding the sixth factor slightly reduces it. This may be explained by keeping into account the fact that in both cases the total cumulative variance explained by the factors is quite small - 0.503 and 0.525, respectively. Therefore, we can conclude that, despite the improvement in the approximation related to the inclusion of the sixth factor, in both cases the approximation of the correlation matrix is not so satisfactory. 
+
+----------------------------------------
+HOW MANY FACTORS SHOULD WE RETAIN?
+
+5? Since the introduction of the sixth factor brings too few advantages(?)
+
+---------------------------------------
+
+## Give an interpretation to the common factors in the m = 5 solution with varimax rotation
+
+EXPLAIN WHY WE USE VARIMAX ROTATION
+
+```{r}
+psych.5fa.ml <- factanal(x=Grant_White, factors = m[1], rotation = "varimax")
+psych.5fa.ml$loadings
+```
+
+In order to interpret the factor we classify the observed variables into five groups - each one corresponding to a different factor - based on their loadings. As a first subdivision we simply choose to assign a variable to a factor if its corresponding loading is greater or equal to 0.5 - indeed this seems to us a good threshold to grant the significant of a factor in explaining a certain variable.
+
+```{r}
+# il codice non è proprio giusto, non funziona se ci sono due loadings sopra 0.5, qui non è il caso quindi potremmo semplicemente nasconderlo... avevo importato tutto cercando il max
+maximum <- apply(psych.5fa.ml$loadings, 1, max)
+pos.max <- as.data.frame(which(psych.5fa.ml$loadings == maximum, arr.ind = T))
+pos.max <- pos.max %>% dplyr::mutate(load.max = psych.5fa.ml$loadings[as.matrix(pos.max)])
+
+group1 <- row.names(dplyr::filter(as.data.frame(pos.max), col == 1, load.max > 0.5))
+
+group2 <- row.names(dplyr::filter(as.data.frame(pos.max), col == 2, load.max > 0.5))
+
+group3 <- row.names(dplyr::filter(as.data.frame(pos.max), col == 3, load.max > 0.5))
+
+group4 <- row.names(dplyr::filter(as.data.frame(pos.max), col == 4, load.max > 0.5))
+
+group5 <- row.names(dplyr::filter(as.data.frame(pos.max), col == 5, load.max > 0.5))
+```
+
+The group of variables associated to the first factor is given by:
+```{r}
+var.meaning %>% dplyr::filter(var %in% group1) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max), col == 1, load.max > 0.5)$load.max)
+```
+The interpretation of this factor seems quite straightforward, as all the variables associated to it are related to the verbal cognitive sphere. For this reason we may denote it as "Verbal".
+
+The group of variables associated to the second factor is:
+```{r}
+var.meaning %>% dplyr::filter(var %in% group2) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max), col == 2, load.max > 0.5)$load.max)
+```
+This interpretation starts to be a little bit less clear. The variables *V1-V2-V3-V4* seem related to the ability to deal with spatial and visual relations. Whilst variables *V20-V21-V23* regard more problem-solving and logical capabilities. Hence we can call this factor "visual/spatial relation and logic".
+
+“imagery capacity” ,[1] “spatial visualization”,[2]“mental visualization skills” [3] “part–whole relationship skills” [4] and “the ability of an individual to visualize and manipulate objects in space”
+
+The group of variables associated to the third factor is:
+```{r}
+var.meaning %>% dplyr::filter(var %in% group3) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max), col == 3, load.max > 0.5)$load.max)
+```
+This factor seems to account for some "mathematical reasoning" ability. Note that variables *V10* and *V12* are actually also related to some speed abilities, as the corresponding tests were "speeded". So this factor may be depicted as "quick/intuitive mathematical reasoning"
+
+The group of variables associated to the fourth factor is:
+```{r}
+var.meaning %>% dplyr::filter(var %in% group4) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max), col == 4, load.max > 0.5)$load.max)
+```
+All the variables that load high on the fourth factor are related to the spheres of recognition and associative memory. Thus this factor may be indeed called "memory/recognition".
+
+Finally, the group of variables associated to the fifth factor is:
+```{r}
+var.meaning %>% dplyr::filter(var %in% group5) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max), col == 5, load.max > 0.5)$load.max)
+```
+This group is made of by a unique variable, *V13*, corresponding to a test consisting of a speeded discrimination of straight and curved uppercase letters.
+The factor may be called *speed letter recognition*, but is actually of low relevance.
+
+We can now deal with the variables for with there are some doubts in the classification. We decided to look at the variables whose loadings are all too low - i.e. all under 0.5 - as well as the variables who actually present a loading between 0.5 and 0.6, but also have one or more greater than 0.4.
+
+In particular, the variables for which we have identified some issues are the following:
+```{r}
+doubt.var <- c(11,13,16,19,21,22)
+cbind(var.meaning[doubt.var,], psych.5fa.ml$loadings[doubt.var,])
+```
+As we can see, *V11* - that looked a bit "out of context" in group 4, loads high also on the third and fifth factors. Given the previous interpretation, it may be reasonable to insert this variables inside group 5. Indeed, both the speeded code-test and the speeded discrimation of straight and curved uppercase letters may be an observable aspect of an underlying "reasoning speed" factor.
+Even if the "new" interpretation of factor 5 appears more satisfactory, it is important to mention that also variable *V13* has high loadings corresponding not only to factor 5 but also on factors 3. 
+Actually these two latter observations may suggest that factor 5 is in some sense "redundant": both *V11* and *V13* - the only variables that scores quite high on the fifth factor - could also have been put inside group 3. There, together with *V10* and *V12* they could have accounted for a "speed" factor. On the other hand, dropping another factor may be inappropriated since the total variance accounted by the model is already too small. A different solution may consist in adding an extra factor: the reason behind this grouping ambiguity may be related to the presence of an additional underlying factor that plays a relevant role in explaining the "in-doubt" variables.
+
+This latter approach may be also used to verify whether variables *V19*, *V21* and *V22* - whose loading are all generally low - are better explained by the introduction of a further factor. 
+
+Finally, it is worth-noting that *V16*, the "figure recognition" variable, loads quite high on both factor 2 and 4. In this particular case, our interpretation seems to be satisfactory: figure recognition ability are necessarily also related to some spatial and visual capabilities.
+
+
+## Make a scatterplot of the first two factor scores for the m = 5 solution obtained by the regression method. Is their correlation equal to zero? Should we expect so? Comment.
+
+First of all we smake some theoretical observations on the factor scores.
+
+The factor scores are the estimated values of the underlying common factors. In particular, they are estimates of the unobserved vector $f_i = (f_{i1}, \dots, f_{im})$ - in place of which we have only observed the variables realisations $x_i = (x_{i1}, \dots, x_{im})$. The estimation, however, is not straightforward, as the total number of unbserved quantities - given not only by the $f_i$, but also by the error terms $\epsilon_i$ - outnumbers the observed $x_i$. 
+
+One of the most used approaches advanced to overcome this problem is the *regression method*. The idea is the following: consider the baseline equation of the factor model
+$$
+  X - \mu = \mathbb{L}F + \epsilon
+$$
+where we suppose that both the factors and the errors are jointly normally distributed. Under these assumption we know that the conditional distribution of $F|X$ is again gaussian, with conditional mean given by
+$$
+ \mathbb{L}^T\mathbb{\Sigma}^{-1}(X-\mu) = \mathbb{L}^T(\mathbb{LL}^T -\mathbb{\Psi})^{-1}(X-\mu)
+$$
+Given so, a natural estimate for $f_i$ is simply the corresponding estimate of this conditional mean:
+$$
+\hat{f_i} = \hat{\mathbb{L}}^T\mathbb{S}^{-1}(x_i-\bar{x})
+$$
+where we use $\mathbb{S}$ in place of its estimation in order to try to reduce the effects of possible mistakes in determining the number of factors.
+
+So, by construction, the factor scores are linear combinations of the same observed variables and as a consequence we should expect them to be a-priori correlated. Nevertheless the degree of orrelation heavily relies on the particular coefficients.
+
+Explicitely, we can compute the factor loading in the following way:
+```{r}
+scores <- scale(Grant_White)%*%solve(R)%*%loadings(psych.5fa.ml)
+all.equal(scores, psych.5fa.ml$scores)
+```
+Hence the factor scores coefficiets - we print only the ones corresponding to the first two factors - are
+```{r}
+coef.fact.12 <- solve(R)%*%loadings(psych.5fa.ml)[,1:2]
+```
+Given the obtained values, we may judge relevant those coefficients that have order of magnitude equal to -1. As we can see there is almost no agreement between the variables corresponding to relevant coefficients of the first factor and the ones corresponding to relevant coefficients for the second factor. For this reason, we expect that the first and second factor scores are essentially uncorrelated.
+
+To test our hypothesis we make a scatterplot of the first two factor scores:
+
+```{r}
+psych.5fa.ml <- factanal(x=Grant_White, factors = m[1], rotation = "varimax", scores = "regression")
+```
+
+```{r}
+ggplot(as.data.frame(psych.5fa.ml$scores), aes(x = Factor1, y = Factor2)) + geom_point()
+
+#plot(psych.5fa.ml$scores[,1],psych.5fa.ml$scores[,2],pch=21, bg = "black",
+     #xlab="Factor1",ylab="Factor2",main="psych data (ML)")
+```
+As expected, no clear pattern arises from the scatter plot, suggesting that the first two factor scores are almost not correlated within each others. Moreover, a numerical computation of the correlation returns:
+```{r}
+cor(psych.5fa.ml$scores[,1], psych.5fa.ml$scores[,2])
+```
+A value that is indeed small.
+
+Finally, a further important thing to study is the presence of bivaraite outliers, as they can influence the strength and direction of the correlation. The reason why is that outliers can create a distorted picture of the relationship between the two variables. Thus, if an outlier is included in a dataset, it can pull the correlation coefficient in one direction or another, making it appear stronger or weaker than it actually is.
+
+In our situation, the correltion coefficient is already very low, therefore we do not expect to find bivariate outliers that are extreme observations "in the same direction" for both observations - i.e. we do not expect to find point that have a very low or very high factor score in both factors.
+Since we are under the assumption of normality, we can make use of the ellipse method:
+```{r}
+a <- (n-0.5)/n
+label = rep("", n)
+
+p <- ggplot(as.data.frame(psych.5fa.ml$scores), aes(x = Factor1, y = Factor2)) + geom_point() + stat_ellipse(level = a)
+
+# before plotting we determine the potential bivariate outliers.
+# Extract components
+build <- ggplot_build(p)$data
+points <- build[[1]]
+ell <- build[[2]]
+
+# Find which points are inside the ellipse, and add this to the data
+dat <- data.frame(
+  points[1:2], 
+  in.ell = as.logical(point.in.polygon(points$x, points$y, ell$x, ell$y))
+)
+
+label[!dat$in.ell] = as.character(which(!dat$in.ell))
+
+ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label),
+            hjust = 1.0, nudge_y = -0.15, nudge_x = 0.05, size = 5, parse = T) +
+stat_ellipse(level = 0.95, color = "deepskyblue4", linetype = 2) + stat_ellipse(level = a, color = "darkorange") + scale_color_manual(values = c("red", "black"))
+```
+
+##
+
+```{r}
+Pasteur <- psych %>% dplyr::filter(group == "PASTEUR") %>% dplyr::select(-c(Case, Sex, Age, group))
+```
+```{r}
+psych.5fa.ml <- factanal(x=Pasteur, factors = m[1], rotation = "varimax")
+psych.5fa.ml$loadings
+```
+
+## Exercise 2
+
+```{r}
+setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
+
+pendigits<-read.table("data/pendigits.txt", sep=",",head=F)
+names(pendigits)<-c(paste0(rep(c("x","y"),8),rep(1:8,each=2)),"digit")
+dim(pendigits)
+
+head(pendigits)
+```
+
+```{r}
+lookup<-c("darkgreen", "brown", "lightblue", "magenta", "purple",
+"blue", "red", "lightgreen", "orange", "cyan")
+names(lookup)<-as.character(0:9)
+
+digit.col<-lookup[as.character(pendigits$digit)]
+```
+
+```{r}
+n <- nrow(pendigits)
+p <- ncol(pendigits)
+k <- length(unique(pendigits$digit)); k
+```
+
+```{r}
+lda.fit <- MASS::lda(digit ~ ., data = pendigits)
+lda.fit
+```
+
+```{r}
+lda.fit$scaling
+lda.pred <- predict(lda.fit)
+```
+
+```{r}
+lda.pred$x[1:5,]
+lda.pred$x <- as.data.frame(lda.pred$x)
+```
+
+```{r}
+p <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
+  geom_point(aes(colour = factor(pendigits$digit)), alpha = 0.7, show.legend = T) +
+  stat_ellipse(aes(colour = factor(pendigits$digit))) +
+  scale_color_manual(values = c("darkgreen",  "brown", "lightblue",  "magenta", "purple", "blue", "red", "lightgreen", "orange", "cyan")) +
+  labs(colour = "digit") + 
+  geom_point(as.data.frame(means.hat), mapping = aes(x = LD1, y = LD2, colour = factor(pendigits$digit)), 
+             shape = 21, colour = "black", fill = lookup, size = 3.5, stroke = 1.0)
+p
+```
+
+
+```{r}
+training.err<-1-mean(lda.pred$class==pendigits$digit)
+training.err
+(2+1)/n
+```
+
+```{r}
+conf.mat<-table(predicted=lda.pred$class,true=pendigits$digit)
+addmargins(conf.mat)
+# n
+```
+
+```{r}
+lda.fitCV<-lda(digit~.,data=pendigits, CV=TRUE)
+
+names(lda.fit)
+names(lda.fitCV)
+names(lda.pred)
+
+conf.mat<-table(predicted=lda.fitCV$class,true=pendigits$digit)
+addmargins(conf.mat)
+CV.err<-1-mean(lda.fitCV$class==pendigits$digit)
+CV.err
+(2+1)/n
+```
+
+```{r}
+groupCV<-rep(1:44, each=250)
+groupCV<-groupCV[1:length(pendigits$digit)]
+```
