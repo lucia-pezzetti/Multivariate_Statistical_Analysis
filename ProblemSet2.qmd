@@ -42,7 +42,7 @@ meaning <- c("visual perception", "cubes", "paper form board", "flags", "general
 var.meaning <- as.data.frame(t(rbind(var, meaning)))
 ```
 
-#### Use the Grant-White students data. Obtain the maximum likelihood solution for m = 5 and m = 6 factors and compute the proportion of total sample variance due to each factor. List the specific variances, and assess the accuracy of the approximation of the correlation matrix. Compare the results. Which choice of m do you prefer? Why?
+### 1. Use the Grant-White students data. Obtain the maximum likelihood solution for m = 5 and m = 6 factors and compute the proportion of total sample variance due to each factor. List the specific variances, and assess the accuracy of the approximation of the correlation matrix. Compare the results. Which choice of m do you prefer? Why?
 
 First of all we start by filtering the data set in order to retain only those observations corresponding to students from the Grant-White School. Once we have done so, we can remove the variable group from the data set we are going to use in the analysis. Together with group we also discard the variable *Case*, that simply enumerate the collected observations. As a side-note we also observe that the total number of considered cases is 350 whilst we only have 301 observations, suggesting that some students did not attend the test or maybe responded only partially. Finally we convert the variable *Sex* into a binary 0-1 variable.
 
@@ -258,7 +258,7 @@ Keeping this in mind, it is also important to note that high uniqueness values a
 
 In our analysis, the presence of such a high number of variables with high uniqueness value may not be completely unexpected: the data are related to aptitude tests on students, thus it seems reasonable to expect that the tests also rely heavily on individual abilities of pupils that, the common factor would fail to encode.
 
-## Nevertheless, the number of factor with a great amount of unexplained variability seems to us too high to be ignored, even if we keep into account the individual characteristics of the students.
+ Nevertheless, the number of factor with a great amount of unexplained variability seems to us too high to be ignored, even if we keep into account the individual characteristics of the students.
 
 Let's now look at the variables for which the inclusion of the sixth factors plays a relevant role:
 
@@ -300,7 +300,7 @@ The obtained norms - for the choice of 5 and 6 factors - are in both cases quite
 
 Overall, the comparison seems to suggests that neither the 5 factors model nor the 6 factors one are good fit for the data. Anyway, if we stick to the problem of deciding how many factors to retain, the choice of 5 common factors may appear to be the most preferable one. Indeed, as it emerges from all the comment above, the improvements related to the use of six factors are not sufficiently noteworthy.
 
-## Give an interpretation to the common factors in the m = 5 solution with varimax rotation
+### 2. Give an interpretation to the common factors in the m = 5 solution with varimax rotation
 
 To give an easier interpretation of the factors, we can perform a varimax rotation. The varimax technique seeks the rotated loadings $L^*$ that maximize the variance of the squared loadings for each factor. Loosely speaking, this maximization has the effect of "spreading out" the squares of the loadings on each factor as much as possible. In other words, the varimax rotation technique attempts to make the loadings either small or large to facilitate interpretation. There performing a varimax rotation aims to find groups of large and the negligible in each column of the rotated loadings matrix $L^*$. 
 
@@ -432,7 +432,7 @@ For what concerns the variable *V11*, we can notice that its three highest loadi
 
 Similarly, for variable *V22* we can't ignore the loading associated to factor 1. Also in this case, we may interpret this result by saying that "problem reasoning" abilities are quite trasversal skills and are surely also related to the verbal sphere.
 
-## Make a scatterplot of the first two factor scores for the m = 5 solution obtained by the regression method. Is their correlation equal to zero? Should we expect so? Comment.
+### 3. Make a scatterplot of the first two factor scores for the m = 5 solution obtained by the regression method. Is their correlation equal to zero? Should we expect so? Comment.
 
 First of all we make some theoretical observations on the factor scores.
 
@@ -454,10 +454,11 @@ To test our hypothesis we make a scatterplot of the first two factor scores:
 
 ```{r}
 psych.5fa.ml <- factanal(x=Grant_White, factors = m[1], rotation = "varimax", scores = "regression")
+scores_GrWh <- psych.5fa.ml$scores
 ```
 
 ```{r, fig.height=4, fig.width=4}
-ggplot(as.data.frame(psych.5fa.ml$scores), aes(x = Factor1, y = Factor2)) + 
+ggplot(as.data.frame(scores_GrWh), aes(x = Factor1, y = Factor2)) + 
   geom_point()
 
 ```
@@ -465,7 +466,7 @@ ggplot(as.data.frame(psych.5fa.ml$scores), aes(x = Factor1, y = Factor2)) +
 As expected, no clear pattern arises from the scatter plot, suggesting that the first two factor scores are almost not correlated within each others. Moreover, a numerical computation of the correlation returns:
 
 ```{r}
-cor(psych.5fa.ml$scores[,1], psych.5fa.ml$scores[,2])
+data.frame("correlation" = cor(scores_GrWh[,1], scores_GrWh[,2]))
 ```
 
 A value that is indeed small.
@@ -475,7 +476,7 @@ Finally, a further insightful thing to verify is whether the assumption of bivar
 Let's first of all compute the sample means of the two factor scores:
 
 ```{r}
-means.hat <- colMeans(psych.5fa.ml$scores[,c(1,2)])
+means.hat <- colMeans(scores_GrWh[,c(1,2)])
 means.hat <- data.frame("x_bar" = means.hat[1], "y_bar" = means.hat[2])
 means.hat
 ```
@@ -488,7 +489,8 @@ In our situation, the correlation coefficient is already very low, therefore we 
 a <- (n-0.5)/n
 label = rep("", n)
 
-pl <- ggplot(as.data.frame(psych.5fa.ml$scores), aes(x = Factor1, y = Factor2)) + geom_point() + stat_ellipse(level = a)
+pl <- ggplot(as.data.frame(scores_GrWh), aes(x = Factor1, y = Factor2)) + 
+  geom_point() + stat_ellipse(level = a)
 
 # before plotting we determine the potential bivariate outliers.
 # Extract components
@@ -517,12 +519,15 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
              color = "darkorchid3", size = 3) + 
   geom_text(mapping = aes(x = means.hat$x_bar, y = means.hat$y_bar, 
                           label = "(x_bar, y_bar)"), nudge_x = 0.3, 
-            nudge_y = -0.1, colour = "darkorchid3")
+            nudge_y = -0.1, colour = "darkorchid3") +
+  xlab("Factor 1") + ylab("Factor 2") + 
+  ggtitle("Scatter-plot of the first two factor scores for the Grant-White students") +
+  theme(plot.title = element_text(hjust = 0))
 ```
 
 As expected, the desired assumption of normality appears to hold.
 
-##  Obtain the maximum likelihood solution with marimax rotation for m = 5 factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant–White students?
+### 4. Obtain the maximum likelihood solution with marimax rotation for m = 5 factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant–White students?
 
 As requested we now compute the maximum likelihood solution with 5 factors using the data on the students attending the Pasteur school. As before we only consider the variables related to the 24 attitudinal tests.
 
@@ -532,6 +537,8 @@ Pasteur <- psych %>% dplyr::filter(group == "PASTEUR") %>% dplyr::select(-c(Case
 
 Let's first of all look at the correlations among those variables.
 ```{r}
+n <- nrow(Pasteur)
+p <- ncol(Pasteur)
 R_past <- cor(Pasteur)
 ```
 
@@ -658,17 +665,79 @@ We can see that for *V3* and *V18* the grouping appears to reasonably holds and 
 
 Nevertheless we may simply address this problems referring to the trasversal competences requested by the corresponding tests. The above interpretation may still be considered quite satisfactory.
 
-To conclude, we can say that we have found quite a good agreement between the interpretation of the common factors based on the Grant-White students data and on the Pasteur student data. This is reasonable, as we expect that the underlying skills necessary to complete the proposed attitudinal tests were the same - regardless of the school attended by the students. To tell the truth, this concordance among the results was also desirable as it can be used to assess the "stability" of our analysis and interpretation. 
+To conclude, we can say that we have found quite a good agreement between the interpretation of the common factors based on the Grant-White students data and on the Pasteur student data. This is reasonable, as we expect that the underlying skills necessary to complete the proposed attitudinal tests were the same - regardless of the school attended by the students. To tell the truth, this concordance among the results was also desirable as it can be used to assess the "stability" of our analysis and interpretation.
 
-## Exercise 2
+### 5. Make a scatterplot of the first two factor scores from the rotated MLFA solution for each school. Comment.
+
+Exactly as we have done for the data on the students from the Grant-White school, we compute the factor scores related to the Pasteur students by means of the function factanal, using the varimax rotation and the regression method to compute the scores.
 
 ```{r}
-#setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
+psych.5fa.ml <- factanal(x=Pasteur, factors = m[1], rotation = "varimax", scores = "regression")
+scores_Past <- psych.5fa.ml$scores
+```
+We then plot the first two scores. As already justified above we expect to see almost no correlation within the two scores and normally distributed data with a zero vector mean and a diagonal covariance matrix. Therefore we look for contour plots with an approximately circular shape and centered in the origin of the axes. 
 
-pendigits<-read.table("data/pendigits.txt", sep=",",head=F)
+```{r}
+data.frame("correlation" = cor(scores_Past[,1], scores_Past[,2]))
+```
+```{r}
+means.hat <- colMeans(scores_Past[,c(1,2)])
+means.hat <- data.frame("x_bar" = means.hat[1], "y_bar" = means.hat[2])
+means.hat
+```
+
+
+```{r, fig.width=8, fig.height=8}
+a <- (n-0.5)/n
+label = rep("", n)
+
+pl <- ggplot(as.data.frame(scores_Past), aes(x = Factor1, y = Factor2)) + 
+  geom_point() + stat_ellipse(level = a)
+
+# before plotting we determine the potential bivariate outliers.
+# Extract components
+build <- ggplot_build(pl)$data
+points <- build[[1]]
+ell <- build[[2]]
+
+# Find which points are inside the ellipse, and add this to the data
+dat <- data.frame(
+  points[1:2], 
+  in.ell = as.logical(point.in.polygon(points$x, points$y, ell$x, ell$y))
+)
+
+label[!dat$in.ell] = as.character(which(!dat$in.ell))
+
+ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label),
+            nudge_y = -0.2, nudge_x = 0.0, size = 5, parse = T) +
+stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) + 
+  stat_ellipse(level = a, color = "darkorange") + 
+  scale_color_manual(values = c("red", "black")) + 
+  geom_text(mapping = aes(x = 0.25, y = 2.7, label = "level = (n-0.5)/n = 0.9965"), 
+            colour = "darkorange") +
+  geom_text(mapping = aes(x = 0.25, y = 2, label = "level = 0.95"), 
+            colour = "royalblue2") +
+  geom_point(mapping = aes(x=means.hat$x_bar, y=means.hat$y_bar), 
+             color = "darkorchid3", size = 3) + 
+  geom_text(mapping = aes(x = means.hat$x_bar, y = means.hat$y_bar, 
+                          label = "(x_bar, y_bar)"), nudge_x = 0.0, 
+            nudge_y = -0.15, colour = "darkorchid3") +
+  xlab("Factor 1") + ylab("Factor 2") + 
+  ggtitle("Scatter-plot of the first two factor scores for the Pasteur students") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+We again can observe that all the desired assumptions are satisfied. Only two outliers have now been identified, corresponding to observations 47 and 144. Globally, this plot seems to agree with the Grant-White one.
+
+From the previous point we have obtained the the first two factors for each school have the same interpretation as "verbal intelligence" and "visual, spatial and logical intelligence". Therefore we expect the plots for the data are very similar and should present the same distribution.
+
+
+## Exercise 2
+```{r}
+#setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
+#setwd("C:/Users/valer/Desktop/dati_lab_R")
+pendigits<-read.table("data_pendigits.txt", sep=",",head=F)
 names(pendigits)<-c(paste0(rep(c("x","y"),8),rep(1:8,each=2)),"digit")
 dim(pendigits)
-
 head(pendigits)
 ```
 
@@ -676,7 +745,6 @@ head(pendigits)
 lookup<-c("darkgreen", "brown", "lightblue", "magenta", "purple",
 "blue", "red", "lightgreen", "orange", "cyan")
 names(lookup)<-as.character(0:9)
-
 digit.col<-lookup[as.character(pendigits$digit)]
 ```
 
@@ -685,7 +753,9 @@ n <- nrow(pendigits)
 p <- ncol(pendigits)
 k <- length(unique(pendigits$digit)); k
 ```
+#### Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory. 
 
+First of all, as requested, we proceed by implementing the linear discriminant analysis:
 ```{r}
 lda.fit <- MASS::lda(digit ~ ., data = pendigits)
 lda.fit
@@ -701,8 +771,8 @@ lda.pred$x[1:5,]
 lda.pred$x <- as.data.frame(lda.pred$x)
 means.hat <- aggregate(lda.pred$x,by=list(pendigits$digit),FUN=mean)[,-1]
 ```
-
-```{r, fig.width=10, fig.height=10}
+We can now display in the below scatterplot the first two LD variables:
+```{r}
 p <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
   geom_point(aes(colour = factor(pendigits$digit)), alpha = 0.7, show.legend = T) +
   stat_ellipse(aes(colour = factor(pendigits$digit))) +
@@ -712,33 +782,45 @@ p <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) +
              shape = 21, colour = "black", fill = lookup, size = 3.5, stroke = 1.0)
 p
 ```
+In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues: some clouds have some values a bit too much far away from the centroids (the points with the black boundaries), the worst case is the digit *5*. Also the digit *0* and *8* show this problem. In general all the other digits do not form a compact distribution around their centroids. \\
+We can start making some speculations: the digit *4* and *2* have a clearer distributions than the others, because their shape is more distinguishable and unique. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. Further analysis will follow in next points. 
+REFER ALSO TO THEORY???
 
-```{r}
-training.err<-1-mean(lda.pred$class==pendigits$digit)
-training.err
-(2+1)/n
-```
+#### Compute the confusion matrix on the training data. What are the groups more difficult to discriminate from the others? Comment in view of the answer to point 1.
 
+In order to have a better understanding of how well the first two LD variables discriminate the ten digits, we compute the confusion matrix on the training data:
 ```{r}
 conf.mat<-table(predicted=lda.pred$class,true=pendigits$digit)
 addmargins(conf.mat)
 # n
 ```
+In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $3+58+9+268=338$ misclassifications, as suggested by the scatterplot.
 
+####Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the trsining error? Why so?
+
+As requested, we proceed with the leave-one-out cross validations:
 ```{r}
 lda.fitCV<-lda(digit~.,data=pendigits, CV=TRUE)
-
 names(lda.fit)
 names(lda.fitCV)
 names(lda.pred)
-
+```
+Now we are able to compute the corresponding confusion matrix and error:
+```{r}
 conf.mat<-table(predicted=lda.fitCV$class,true=pendigits$digit)
 addmargins(conf.mat)
 CV.err<-1-mean(lda.fitCV$class==pendigits$digit)
 CV.err
 (2+1)/n
 ```
-
+We compute also the training error to make a comparison:
+```{r}
+training.err<-1-mean(lda.pred$class==pendigits$digit)
+training.err
+(2+1)/n
+```
+As we can see, the CV error is around 0.124 and the training error around 0.122, so we have ha difference in favor of the training error of 0.002.\\
+WHY SO?
 ```{r}
 groupCV<-rep(1:44, each=250)
 groupCV<-groupCV[1:length(pendigits$digit)]
