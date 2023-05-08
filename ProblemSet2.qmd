@@ -4,11 +4,20 @@ format: pdf
 editor: visual
 ---
 
-```{r}
+```{r, include=FALSE}
 rm(list=ls())
+setwd("~/GitHub/PS2_Multivariate") #should work fine for everyone
+
+# useful commands:
+# include=FALSE - results and code are not displayed
+# echo=FALSE - code is not displayed
+# result=FALSE - code is printed but results not
+# error=TRUE - to continue execution despite errors in the chunk
+# warning=FALSE - to hide warnings
+# eval=FALSE - code is visible in the file but is not executed
 ```
 
-```{r}
+```{r, include=FALSE}
 library(plyr)
 library(tidyverse)
 library(MASS)
@@ -21,7 +30,7 @@ library(sp)
 
 ## Exercise 1
 
-We consider the dat set psych which contains 24 cognitive tests administered to 301 students (with ages ranging from 11 to 16) in a suburb of Chicago: a group of 156 students (74 boys, 82 girls) from the Pasteur School and a group of 145 students (72 boys, 73 girls) from the Grant-White School.
+We consider the dataset psych which contains 24 cognitive tests administered to 301 students (with ages ranging from 11 to 16) in a suburb of Chicago: a group of 156 students (74 boys, 82 girls) from the Pasteur School and a group of 145 students (72 boys, 73 girls) from the Grant-White School.
 
 ```{r}
 ## psych data
@@ -50,11 +59,11 @@ First of all we start by filtering the data set in order to retain only those ob
 Grant_White <- psych %>% dplyr::filter(group == "GRANT") %>% dplyr::select(-c(Case, group)) %>% dplyr::mutate(Sex = as.numeric(revalue(Sex, c(F = 1, M = 0))))
 ```
 
-The aim of the Factor Analysis is, in essence, to describe - if possible - the covariance relationships among many variables in terms of a few underlying, but unobservable, random variables called factors. Loosely speaking the idea is the following: suppose that the considered variables can be grouped according to their correlation pattern - i.e. that we can cluster the variables in such a way to have high intra-groups correlations and small inter-groups correlations. It seems reasonable to believe that each group of variables may be linked to a single underlying and unobservable factor, which ultimately is the responsible for the observed significant intra-group correlations.
+The aim of the Factor Analysis is, in essence, to describe - if possible - the covariance relationships among many variables in terms of a few underlying but unobservable random variables, called factors. Loosely speaking the idea is the following: suppose that the considered variables can be grouped according to their correlation pattern - i.e. that we can cluster the variables in such a way to have high intra-groups correlations and small inter-groups correlations. It seems reasonable to believe that each group of variables may be linked to a single underlying and unobservable factor, which ultimately is the responsible for the observed significant intra-group correlations.
 
 Looking at the psych data set it is conceivable that the results of the "ability" tests performed are just different measures of fewer broad domains like for example verbal or spatial abilities, memory or mathematical deduction.
 
-We start our analysis by considering the correation matrix:
+We start our analysis by considering the correlation matrix:
 
 ```{r}
 R <- cor(Grant_White)
@@ -67,17 +76,16 @@ It is helpful to plot it:
 corrplot(R, method = 'color', type = 'lower', insig='blank',
          addCoef.col ='black', number.cex = 0.8, diag=FALSE, col = COL2('RdBu', n = 200))
 ```
-Looking at the plot of the correlations, we can immediately observe the presence of some groups of quite significantly correlated variables. The most evident one is composed by the variables *V5*, *V6*, *V7*, *V8* and *V9*. Looking at the type of the test they represent, we can observe that all those variables are related to a linguistic or verbal area, hence we could have expected them to be highly correlated. Moreover, this may be suggest the fact that all those variables are simply catching different aspects of the same underlying and unobservable factor.
 
-Whit a slightly greater level of uncertainty, we can also identify the group of the variables *V10*, *V11*, *V12* and *V13*. In this case the relationship among the variables is less clear. Nevertheless some researches on the type of the tests performed by Holzinger and Swineford - who collected the data - seem to suggest that all those tests were actually "speeded" tests and so may all refer to some ability of "quick-reasoning skills or responsiveness".
+Looking at the plot of the correlations, we can immediately observe the presence of some groups of quite significantly correlated variables. The most evident one is composed by the variables *V5*, *V6*, *V7*, *V8* and *V9*. Looking at the type of the tests they represent, we can observe that all those variables are related to a linguistic or verbal area, hence we could have expected them to be highly correlated. Moreover, this may be suggest the fact that all those variables are simply catching different aspects of the same underlying and unobservable factor. (*...hence we do expect them to be highly correlated, and we may also expect them to be explained by a common factor*.)
+
+Whit a slightly greater level of uncertainty, we can also identify the group of the variables *V10*, *V11*, *V12* and *V13*. In this case the relationship among the variables is less clear. Nevertheless some researches on the type of the tests performed by Holzinger and Swineford - who collected the data - seem to suggest that all those tests were actually "speeded" tests (*... all those tests were actually focusing on the speed at which the tasks were solved, and so. they may refer to...*) and so may all refer to some ability of "quick-reasoning skills or responsiveness".
 
 Finally, we also mention the group of the variables *V20*, *V21*, *V22*, *V23* and *V9* - all quite related to some logical or problem solving skills.
 
 Overall, we can say that almost the totality of the correlations are positive and that the majority of them are quite small - or at least smaller than 0.5.
 
------------BOH------------
-For what concern the variables *Sex* and *Age*, we can observe that they are low correlated within each other and within all the other variables. This seems to suggests that neither of these variables have a relevant role in affecting the results of the tests. Moreover it seems unlikely to us that sex and age of a student may be explained by some underlying factors. For these reasons, we will consider only the results of the 24 tests.
-------------------------------
+-----------BOH------------ For what concern the variables *Sex* and *Age*, we can observe that they are low correlated within each other and within all the other variables. This seems to suggests that neither of these variables have a relevant role in affecting the results of the tests. Moreover it seems unlikely to us that sex and age of a student may be explained by some underlying factors. For these reasons, we will consider only the results of the 24 tests. ------------------------------
 
 ```{r}
 #col <- plyr::revalue(Grant_White$Sex, c(0 = "magenta", 1 = "blue"))
@@ -89,7 +97,7 @@ p <- ncol(Grant_White)
 R <- cor(Grant_White)
 ```
 
-In particular, we are asked to perform a Factor Analysis with $m=5$ and $m=6$ common factors using the maximum likelihood approach. In R we can rely on the function *factanal*, however in applying this function rely on the strong assumption of normality of the data. Therefore we start by assessing this assumption.
+In particular, we are asked to perform a Factor Analysis with $m=5$ and $m=6$ common factors using the maximum likelihood approach. In R we can use the command *factanal*, however in applying this function werely on the strong assumption of normality of the data. Therefore we start by assessing this assumption.
 
 To do so we plot the chi-square qq-plot of the squared Mahalanobis distances, under the assumption of multivariate normality, the data will fall along the bisector.
 
@@ -252,13 +260,11 @@ Again, the presence of such a great number of variables with high uniquenesses m
 
 Indeed, high uniqueness values in a factor analysis indicate that a large proportion of the variance in a variable is not accounted for by the factors extracted from the analysis. This means that the variable is not well explained by the underlying factors and has a unique contribution to the overall variance in the data.
 
------------------ Si potrebbe togliere in realtà -------------------------------
-Keeping this in mind, it is also important to note that high uniqueness values are not necessarily a problem in themselves. Some variables will naturally have higher uniqueness values than others, depending on their level of specificity or measurement precision. Therefore one should always consider the specific context of the phenomenon being studied.
---------------------------------------------------------------------------------
+----------------- Si potrebbe togliere in realtà ------------------------------- Keeping this in mind, it is also important to note that high uniqueness values are not necessarily a problem in themselves. Some variables will naturally have higher uniqueness values than others, depending on their level of specificity or measurement precision. Therefore one should always consider the specific context of the phenomenon being studied. --------------------------------------------------------------------------------
 
 In our analysis, the presence of such a high number of variables with high uniqueness value may not be completely unexpected: the data are related to aptitude tests on students, thus it seems reasonable to expect that the tests also rely heavily on individual abilities of pupils that, the common factor would fail to encode.
 
- Nevertheless, the number of factor with a great amount of unexplained variability seems to us too high to be ignored, even if we keep into account the individual characteristics of the students.
+Nevertheless, the number of factor with a great amount of unexplained variability seems to us too high to be ignored, even if we keep into account the individual characteristics of the students.
 
 Let's now look at the variables for which the inclusion of the sixth factors plays a relevant role:
 
@@ -302,8 +308,7 @@ Overall, the comparison seems to suggests that neither the 5 factors model nor t
 
 ### 2. Give an interpretation to the common factors in the m = 5 solution with varimax rotation
 
-To give an easier interpretation of the factors, we can perform a varimax rotation. The varimax technique seeks the rotated loadings $L^*$ that maximize the variance of the squared loadings for each factor. Loosely speaking, this maximization has the effect of "spreading out" the squares of the loadings on each factor as much as possible. In other words, the varimax rotation technique attempts to make the loadings either small or large to facilitate interpretation. There performing a varimax rotation aims to find groups of large and the negligible in each column of the rotated loadings matrix $L^*$. 
-
+To give an easier interpretation of the factors, we can perform a varimax rotation. The varimax technique seeks the rotated loadings $L^*$ that maximize the variance of the squared loadings for each factor. Loosely speaking, this maximization has the effect of "spreading out" the squares of the loadings on each factor as much as possible. In other words, the varimax rotation technique attempts to make the loadings either small or large to facilitate interpretation. There performing a varimax rotation aims to find groups of large and the negligible in each column of the rotated loadings matrix $L^*$.
 
 ```{r}
 psych.5fa.ml <- factanal(x=Grant_White, factors = m[1], rotation = "varimax")
@@ -527,7 +532,7 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
 
 As expected, the desired assumption of normality appears to hold.
 
-### 4. Obtain the maximum likelihood solution with marimax rotation for m = 5 factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant–White students?
+### 4. Obtain the maximum likelihood solution with marimax rotation for m = 5 factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant--White students?
 
 As requested we now compute the maximum likelihood solution with 5 factors using the data on the students attending the Pasteur school. As before we only consider the variables related to the 24 attitudinal tests.
 
@@ -536,6 +541,7 @@ Pasteur <- psych %>% dplyr::filter(group == "PASTEUR") %>% dplyr::select(-c(Case
 ```
 
 Let's first of all look at the correlations among those variables.
+
 ```{r}
 n <- nrow(Pasteur)
 p <- ncol(Pasteur)
@@ -547,12 +553,12 @@ corrplot(R_past, method = 'color', type = 'lower', insig='blank',
          addCoef.col ='black', number.cex = 0.8, diag=FALSE, col = COL2('RdBu', n = 200))
 ```
 
-As happened for the data related to the Grant-White school, we can observe that there is a group of high correlated data corresponding to variables *V5*, *V6*, *V7*, *V8* and *V9*. This, again, may suggest the existence of an underlying factor to which of those variable refer to. Those variables are also quite correlated with *V21*, *V22* and *V23*.
-Finally some other less clear correlation patterns appear among the variables *V10*, *V11*, *V12* and *V13* and maybe also among *V14*, *V15* and *v16*.
+As happened for the data related to the Grant-White school, we can observe that there is a group of high correlated data corresponding to variables *V5*, *V6*, *V7*, *V8* and *V9*. This, again, may suggest the existence of an underlying factor to which of those variable refer to. Those variables are also quite correlated with *V21*, *V22* and *V23*. Finally some other less clear correlation patterns appear among the variables *V10*, *V11*, *V12* and *V13* and maybe also among *V14*, *V15* and *v16*.
 
 Overall, however, the great majority of correlation coefficients are quite small and almost all positive.
 
 We also quickly assess the assumption of multivariate normality:
+
 ```{r}
 x.bar <- colMeans(Pasteur)
 S <- cov(Pasteur)
@@ -564,18 +570,20 @@ ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), y = sort(d))) +
   expand_limits(x = c(9.0, 60.0), y = c(9.0, 60.0)) +
   ggtitle("Chi-squared QQ-plot of squared generalized distancees - Pasteur School")
 ```
+
 As we can see, the assumption of normality seems to perfectly fit the data coming from the Pasteur school.
 
 We can now fit the model for the Pasteur data using the factanal function and 5 factors. Since we are asked to compare the interpretation of the factors with the one obtained using data of the students in the Grant-White school, we already perform the factor analysis using the varimax rotation.
+
 ```{r}
 psych.5fa.ml <- factanal(x=Pasteur, factors = m[1], rotation = "varimax")
 psych.5fa.ml$loadings
 ```
+
 Also in this case we can observe that the proportion of cumulative variance explained by the five factors is simply equal to the 48.6%. A percentage that hence is not so satisfactory. We can also notice that the proportion of variance explained by the last factor is doubled with respect to the data from the Grant-White school, hence we expect a slightly easier interpretation of the fifth factor than before. Conversely the proportion of variance explained by factor 3 and 4 are smaller. This may suggest the presence of some differences between the interpretations.
 
-We group the variable exactly as we have done for the Grant-White data:
-- firstly, for each variable we detect its greatest loading and the corresponding factor;
-- then we assess the significance of the loading by means of a threshold value of 0.5.
+We group the variable exactly as we have done for the Grant-White data: - firstly, for each variable we detect its greatest loading and the corresponding factor; - then we assess the significance of the loading by means of a threshold value of 0.5.
+
 ```{r}
 maximum_past <- apply(psych.5fa.ml$loadings, 1, max)
 pos.max_past <- as.data.frame(which(psych.5fa.ml$loadings == maximum_past, arr.ind = T))
@@ -593,67 +601,84 @@ group5_past <- row.names(dplyr::filter(as.data.frame(pos.max_past), col == 5))
 ```
 
 The first group is made up by the variables:
+
 ```{r}
 group1_past <- var.meaning %>% dplyr::filter(var %in% group1_past) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max_past), col == 1)$load.max)
 
 group1_past
 ```
+
 All the variables in this group have high loadings, moreover the variables in this group are exactly the same we have found in the group related to the first common factor of the Grant-White data. Therefore we may rightly say that, in both cases - with the Grant-White or Pasteur data - the first common factor may be intepret as "linguistic intelligence" or "verbal skills".
 
 The second group comprehends:
+
 ```{r}
 group2_past <- var.meaning %>% dplyr::filter(var %in% group2_past) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max_past), col == 2)$load.max)
 
 group2_past
 ```
+
 among which the variables with a loading higher then the fixed significant threshold value are:
+
 ```{r}
 restricted2_past <- group2_past %>% dplyr::filter(load.max > 0.5)
 restricted2_past
 ```
+
 Even for this second group we can observe a good correspondence to what we have found using the Grant-White data. Indeed, the variables that load sufficiently high on this factor are almost the same then in the previous analysis. If then we consider also the removed variables whose loadings are smaller than 0.5, we can see a perfect correspondence between the two groups. Hence we can still interpret this second factor as "visual,spatial and logic intelligence".
 
 Let's switch to the third group:
+
 ```{r}
 group3_past <- var.meaning %>% dplyr::filter(var %in% group3_past) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max_past), col == 3)$load.max)
 
 group3_past
 ```
+
 and removing the variable with less significant loadings:
+
 ```{r}
 restricted3_past <- group3_past %>% dplyr::filter(load.max > 0.5)
 restricted3_past
 ```
-Comparing with the results obtained in the Grant-White data analysis, we can observe that this group appears to correspond to the group which - in that analysis - was related to the fourth factor. Despite this inversion of order we can reasonably say that the interpretation of the third factor we are considering and of the previous fourth factor are basically the same. Indeed, even in this case all the identified variables are related to the spheres of recognition and memory. 
+
+Comparing with the results obtained in the Grant-White data analysis, we can observe that this group appears to correspond to the group which - in that analysis - was related to the fourth factor. Despite this inversion of order we can reasonably say that the interpretation of the third factor we are considering and of the previous fourth factor are basically the same. Indeed, even in this case all the identified variables are related to the spheres of recognition and memory.
 
 We can also underline the fact the only difference among the two groups - actually we are looking at the non-filtered ones - is the absence of the variable *V11* in this latter one. This can be considered a subtle and not so relevant disagreement: *V11* indeed had already a loading (0.436) below the significance threshold value and actually showed other two loadings of a very similar magnitude (0.423 in correspondence of factor 3 and 0.418 on factor 5). For all those reason, it's classification were far more clear in the previous analysis.
 
 To conclude, we can assimilate this third factor to the previous fourth one: reasonably they can be both interpret as "memory" or "recognition skills".
 
 At this point we expect to see a fourth group similar to the previous third or fifth one:
+
 ```{r}
 group4_past <- var.meaning %>% dplyr::filter(var %in% group4_past) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max_past), col == 4)$load.max)
 
 group4_past
 ```
-The result we get however is different, let's look at it. Firstly we notice that all the variables have a loading higher then 0.5, thus all have a level of significance that is high enough. The three variables are at first glance not much related, nevertheless - as already mentioned at the very beginning, during the comment relative to the correlation plot of the Grant-White data - all these three test were "speeded" and so they can all be considered as different ways to test students ability to think and act quickly, maybe under pressure, as well as their responsiveness to different visual stimuli. Given this interpretation of the test, it is quite natural to denote this factor as "responsiveness". 
+
+The result we get however is different, let's look at it. Firstly we notice that all the variables have a loading higher then 0.5, thus all have a level of significance that is high enough. The three variables are at first glance not much related, nevertheless - as already mentioned at the very beginning, during the comment relative to the correlation plot of the Grant-White data - all these three test were "speeded" and so they can all be considered as different ways to test students ability to think and act quickly, maybe under pressure, as well as their responsiveness to different visual stimuli. Given this interpretation of the test, it is quite natural to denote this factor as "responsiveness".
 
 Actually, taking into account the previous difficulties in determine the group for *V11* as well as the fact that its loading for the fifth factor was not so small with respect to its maximum one, we may say that th Pasteur data succeed in better identify the "mysterious" previous fifth factor. In other words, we believe that the last factor of the previous analysis - that we have also pointed out as potentially difficult to interpret due to the low proportion of variance it explained - has instead clearly identified using the data from the second school.
 
 Finally, as a further confirm to what we have just argued, we would like to obtain a fifth group that can be explained based on a mathematical underlying factor. The variables classified in this last group are:
+
 ```{r}
 group5_past <- var.meaning %>% dplyr::filter(var %in% group5_past) %>% dplyr::mutate(load.max = dplyr::filter(as.data.frame(pos.max_past), col == 5)$load.max)
 
 group5_past
 ```
+
 and the one with sufficiently high loadings:
+
 ```{r}
 restricted5_past <- group5_past %>% dplyr::filter(load.max > 0.5)
 restricted5_past
 ```
+
 As wished, this group suits quite well the previous third one. Therefore the corresponding unobserved common factor can be reasonably called "arithmetic skills".
 
 Before summing up what we have found, we quickly look at the variables whose loadings are all under the significance threshold value:
+
 ```{r}
 doubt.var_past <- rbind(group2_past %>% dplyr::filter(load.max < 0.5), group3_past %>% dplyr::filter(load.max < 0.5), group5_past %>% dplyr::filter(load.max < 0.5))
 doubt.var_past <- round(psych.5fa.ml$loadings[which(var.meaning$var%in%doubt.var_past$var),],3)
@@ -661,6 +686,7 @@ doubt.var_past <- cbind(doubt.var_past, dplyr::filter(var.meaning, var %in% row.
 doubt.var_past <- dplyr::select(doubt.var_past, -var)
 doubt.var_past
 ```
+
 We can see that for *V3* and *V18* the grouping appears to reasonably holds and that also *V16* may be actually assigned to factor 3. For what concern the last three variables things get more complicated: *V22* loads almost equally on factor 1 and 2, *V21* has also a not negligible loading on factor 3 and *V19* appears to have all low loadings.
 
 Nevertheless we may simply address this problems referring to the trasversal competences requested by the corresponding tests. The above interpretation may still be considered quite satisfactory.
@@ -675,17 +701,18 @@ Exactly as we have done for the data on the students from the Grant-White school
 psych.5fa.ml <- factanal(x=Pasteur, factors = m[1], rotation = "varimax", scores = "regression")
 scores_Past <- psych.5fa.ml$scores
 ```
-We then plot the first two scores. As already justified above we expect to see almost no correlation within the two scores and normally distributed data with a zero vector mean and a diagonal covariance matrix. Therefore we look for contour plots with an approximately circular shape and centered in the origin of the axes. 
+
+We then plot the first two scores. As already justified above we expect to see almost no correlation within the two scores and normally distributed data with a zero vector mean and a diagonal covariance matrix. Therefore we look for contour plots with an approximately circular shape and centered in the origin of the axes.
 
 ```{r}
 data.frame("correlation" = cor(scores_Past[,1], scores_Past[,2]))
 ```
+
 ```{r}
 means.hat <- colMeans(scores_Past[,c(1,2)])
 means.hat <- data.frame("x_bar" = means.hat[1], "y_bar" = means.hat[2])
 means.hat
 ```
-
 
 ```{r, fig.width=8, fig.height=8}
 a <- (n-0.5)/n
@@ -726,12 +753,13 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
   ggtitle("Scatter-plot of the first two factor scores for the Pasteur students") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
+
 We again can observe that all the desired assumptions are satisfied. Only two outliers have now been identified, corresponding to observations 47 and 144. Globally, this plot seems to agree with the Grant-White one.
 
 From the previous point we have obtained the the first two factors for each school have the same interpretation as "verbal intelligence" and "visual, spatial and logical intelligence". Therefore we expect the plots for the data are very similar and should present the same distribution.
 
-
 ## Exercise 2
+
 ```{r}
 #setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
 #setwd("C:/Users/valer/Desktop/dati_lab_R")
@@ -753,9 +781,11 @@ n <- nrow(pendigits)
 p <- ncol(pendigits)
 k <- length(unique(pendigits$digit)); k
 ```
-#### Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory. 
+
+#### Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory.
 
 First of all, as requested, we proceed by implementing the linear discriminant analysis:
+
 ```{r}
 lda.fit <- MASS::lda(digit ~ ., data = pendigits)
 lda.fit
@@ -771,7 +801,9 @@ lda.pred$x[1:5,]
 lda.pred$x <- as.data.frame(lda.pred$x)
 means.hat <- aggregate(lda.pred$x,by=list(pendigits$digit),FUN=mean)[,-1]
 ```
+
 We can now display in the below scatterplot the first two LD variables:
+
 ```{r}
 p <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
   geom_point(aes(colour = factor(pendigits$digit)), alpha = 0.7, show.legend = T) +
@@ -782,30 +814,34 @@ p <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) +
              shape = 21, colour = "black", fill = lookup, size = 3.5, stroke = 1.0)
 p
 ```
-In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues: some clouds have some values a bit too much far away from the centroids (the points with the black boundaries), the worst case is the digit *5*. Also the digit *0* and *8* show this problem. In general all the other digits do not form a compact distribution around their centroids. \\
-We can start making some speculations: the digit *4* and *2* have a clearer distributions than the others, because their shape is more distinguishable and unique. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. Further analysis will follow in next points. 
-REFER ALSO TO THEORY???
+
+In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues: some clouds have some values a bit too much far away from the centroids (the points with the black boundaries), the worst case is the digit *5*. Also the digit *0* and *8* show this problem. In general all the other digits do not form a compact distribution around their centroids. \\ We can start making some speculations: the digit *4* and *2* have a clearer distributions than the others, because their shape is more distinguishable and unique. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. Further analysis will follow in next points. REFER ALSO TO THEORY???
 
 #### Compute the confusion matrix on the training data. What are the groups more difficult to discriminate from the others? Comment in view of the answer to point 1.
 
 In order to have a better understanding of how well the first two LD variables discriminate the ten digits, we compute the confusion matrix on the training data:
+
 ```{r}
 conf.mat<-table(predicted=lda.pred$class,true=pendigits$digit)
 addmargins(conf.mat)
 # n
 ```
+
 In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $3+58+9+268=338$ misclassifications, as suggested by the scatterplot.
 
 ####Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the trsining error? Why so?
 
 As requested, we proceed with the leave-one-out cross validations:
+
 ```{r}
 lda.fitCV<-lda(digit~.,data=pendigits, CV=TRUE)
 names(lda.fit)
 names(lda.fitCV)
 names(lda.pred)
 ```
+
 Now we are able to compute the corresponding confusion matrix and error:
+
 ```{r}
 conf.mat<-table(predicted=lda.fitCV$class,true=pendigits$digit)
 addmargins(conf.mat)
@@ -813,14 +849,17 @@ CV.err<-1-mean(lda.fitCV$class==pendigits$digit)
 CV.err
 (2+1)/n
 ```
+
 We compute also the training error to make a comparison:
+
 ```{r}
 training.err<-1-mean(lda.pred$class==pendigits$digit)
 training.err
 (2+1)/n
 ```
-As we can see, the CV error is around 0.124 and the training error around 0.122, so we have ha difference in favor of the training error of 0.002.\\
-WHY SO?
+
+As we can see, the CV error is around 0.124 and the training error around 0.122, so we have ha difference in favor of the training error of 0.002.\\ WHY SO?
+
 ```{r}
 groupCV<-rep(1:44, each=250)
 groupCV<-groupCV[1:length(pendigits$digit)]
