@@ -6,8 +6,7 @@ editor: visual
 
 ```{r, include=FALSE}
 rm(list=ls())
-setwd("~/GitHub/PS2_Multivariate") #should work fine for everyone
-
+knitr::opts_chunk$set(root.dir = normalizePath("~/GitHub/PS2_Multivariate"))
 # useful commands:
 # include=FALSE - results and code are not displayed
 # echo=FALSE - code is not displayed
@@ -110,7 +109,7 @@ d = mahalanobis(Grant_White, center = x.bar, cov = S);
 ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), y = sort(d))) + 
  geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
   expand_limits(x = c(9.0, 60.0), y = c(9.0, 60.0)) +
-  ggtitle("Chi-squared QQ-plot of squared generalized distancees - Grant-White school")
+  ggtitle("Chi-squared QQ-plot of squared generalized distances - Grant-White school")
 ```
 
 As we can see from the plot, the points deviate from the straight line only in the right top end. This indicates that there the points are more dense than for a $\chi_{24}^2$. Correspondingly, since the largest values are more spread out, the tail of the chi-square distribution is more heavier. So, the plot seems to suggest that the Mahalanobis' distances in the sample are more right skew than you would expect to see with a mutivariate normal.
@@ -763,7 +762,9 @@ From the previous point we have obtained the the first two factors for each scho
 ```{r}
 #setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
 #setwd("C:/Users/valer/Desktop/dati_lab_R")
-pendigits<-read.table("data_pendigits.txt", sep=",",head=F)
+rm(list=ls())
+#setwd("~/UniTo/Multivariate Statistic/problemset_2")
+pendigits<-read.table("data/pendigits.txt", sep=",",head=F)
 names(pendigits)<-c(paste0(rep(c("x","y"),8),rep(1:8,each=2)),"digit")
 dim(pendigits)
 head(pendigits)
@@ -781,6 +782,65 @@ n <- nrow(pendigits)
 p <- ncol(pendigits)
 k <- length(unique(pendigits$digit)); k
 ```
+Let us start with a little data exploration, in order to better understand and interpret the results below.  
+We note that the data-set is not really complete: we would expect $44\cdot 250=11000$ observations, but we only have $10992$. This is almost irrelevant for all future purposes, but we may need to be a bit more careful in the last sections, e.g. regarding k-fold cross validation, if we want to be accurate.
+We also notice that the frequencies of the digits are fairly similar:
+```{r}
+table(pendigits$digit)
+```
+so we do not expect to have priors that affect much our classifications.
+
+We recall that the effectiveness of linear discriminant analysis relies on the assumption of normality of the conditional distributions of the data given that they belong to one of the classes and the further assumption that all of these conditional distribution share the same covariance matrix. Thus it's worth have a quick overview of how well a Gaussian model fits the conditional distribution, and how the covariance matrices compare with each other given different classes.  
+
+Let's start by assessing multivariate Gaussianity of the data via the chi-square Q-Q plot of the squared Mahalanobis distances.
+
+```{r}
+p=list(0,1,2,3,4,5,6,7,8,9)
+for(i in c(0,1,2,3,5,6,7,8,9))
+{
+  by_digit= pendigits %>% dplyr::filter(digit==i) %>% dplyr::select(-digit)
+  x.bar=colMeans(by_digit)
+  S=cov(by_digit)
+  d = mahalanobis(by_digit, center = x.bar, cov = S)
+  pl[[i+1]]=ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = 16), y=sort(d))) + 
+      geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
+      expand_limits(x = c(-0.0, 40.0)) +
+      ggtitle(paste("Chi-squared QQ-plot of\n squared generalized distances\nDigit: ",i))
+}
+pl
+```
+
+We left out the particular case of the digit $4$, which as an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may be Gaussian when projected in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$.
+```{r}
+by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
+  x.bar=colMeans(by_digit)
+  S=cov(by_digit)
+  d = mahalanobis(by_digit, center = x.bar, cov = S);
+  ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = 15), y=sort(d))) + 
+      geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
+      expand_limits(x = c(-0.0, 40.0)) +
+      ggtitle("Chi-squared QQ-plot of\n squared generalized distances")
+```
+It seems that all these distribution behave well for the most part, but suffer to different extents the effects of lighter-than-expected right tails. In particular, data relative to digits $3$, $6$ and $9$ could be well modeled by a Gaussian distribution, the same cannot be said as confidently for the others.  
+Now we compare variances. We do not really expect them to be all similar, particularly considered the case of $4$.
+```{r}
+covar=as.list(1:10)
+for(i in 1:10){
+  by_digit= pendigits %>% dplyr::filter(digit==(i-1)) %>% dplyr::select(-digit)
+  covar[[i]]=cov(by_digit)
+}
+library(matrixcalc)
+for(i in 1:10){
+  for(j in 1:(i-1)){
+    if(i>1){
+      print(frobenius.norm(covar[[i]]-covar[[j]]))
+    }
+  }
+}
+    
+```
+MAYBE NOT SUCH A GOOD IDEA
+We should also keep in mind that, even if the assumptions partially fail, the robustness of LDA could guarantee fairly good results regardless.  
 
 #### Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory.
 
@@ -802,7 +862,7 @@ lda.pred$x <- as.data.frame(lda.pred$x)
 means.hat <- aggregate(lda.pred$x,by=list(pendigits$digit),FUN=mean)[,-1]
 ```
 
-We can now display in the below scatterplot the first two LD variables:
+We can now display the first two LD variables in the below scatterplot :
 
 ```{r}
 p <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
