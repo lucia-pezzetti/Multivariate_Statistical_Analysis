@@ -781,15 +781,17 @@ n <- nrow(pendigits)
 p <- ncol(pendigits)
 k <- length(unique(pendigits$digit)); k
 ```
-Let us start with a little data exploration, in order to better understand and interpret the results below.  
-We note that the data-set is not really complete: we would expect $44\cdot 250=11000$ observations, but we only have $10992$. This is almost irrelevant for all future purposes, but we may need to be a bit more careful in the last sections, e.g. regarding k-fold cross validation, if we want to be accurate.
-We also notice that the frequencies of the digits are fairly similar:
+
+Let us start with a little data exploration, in order to better understand and interpret the results below.\
+We note that the data-set is not really complete: we would expect $44\cdot 250=11000$ observations, but we only have $10992$. This is almost irrelevant for all future purposes, but we may need to be a bit more careful in the last sections, e.g. regarding k-fold cross validation, if we want to be accurate. We also notice that the frequencies of the digits are fairly similar:
+
 ```{r}
 table(pendigits$digit)
 ```
+
 so we do not expect to have priors that affect much our classifications.
 
-We recall that the effectiveness of linear discriminant analysis relies on the assumption of normality of the conditional distributions of the data given that they belong to one of the classes and the further assumption that all of these conditional distribution share the same covariance matrix. Thus it's worth have a quick overview of how well a Gaussian model fits the conditional distribution, and how the covariance matrices compare with each other given different classes.  
+We recall that the effectiveness of linear discriminant analysis relies on the assumption of normality of the conditional distributions of the data given that they belong to one of the classes and the further assumption that all of these conditional distribution share the same covariance matrix. Thus it's worth have a quick overview of how well a Gaussian model fits the conditional distribution, and how the covariance matrices compare with each other given different classes.
 
 Let's start by assessing multivariate Gaussianity of the data via the chi-square Q-Q plot of the squared Mahalanobis distances.
 
@@ -810,6 +812,7 @@ pl
 ```
 
 We left out the particular case of the digit $4$, which as an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may be Gaussian when projected in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$.
+
 ```{r}
 by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
   x.bar=colMeans(by_digit)
@@ -820,8 +823,10 @@ by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
       expand_limits(x = c(-0.0, 40.0)) +
       ggtitle("Chi-squared QQ-plot of\n squared generalized distances")
 ```
-It seems that all these distribution behave well for the most part, but suffer to different extents the effects of lighter-than-expected right tails. In particular, data relative to digits $3$, $6$ and $9$ could be well modeled by a Gaussian distribution, the same cannot be said as confidently for the others.  
+
+It seems that all these distribution behave well for the most part, but suffer to different extents the effects of lighter-than-expected right tails. In particular, data relative to digits $3$, $6$ and $9$ could be well modeled by a Gaussian distribution, the same cannot be said as confidently for the others.\
 Now we compare variances. We do not really expect them to be all similar, particularly considered the case of $4$.
+
 ```{r}
 covar=as.list(1:10)
 for(i in 1:10){
@@ -838,8 +843,8 @@ for(i in 1:10){
 }
     
 ```
-MAYBE NOT SUCH A GOOD IDEA
-We should also keep in mind that, even if the assumptions partially fail, the robustness of LDA could guarantee fairly good results regardless.  
+
+MAYBE NOT SUCH A GOOD IDEA We should also keep in mind that, even if the assumptions partially fail, the robustness of LDA could guarantee fairly good results regardless.
 
 #### Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory.
 
@@ -849,7 +854,6 @@ First of all, as requested, we proceed by implementing the linear discriminant a
 lda.fit <- MASS::lda(digit ~ ., data = pendigits)
 lda.fit
 ```
-
 
 ```{r}
 lda.fit$scaling
@@ -887,9 +891,7 @@ addmargins(conf.mat)
 # n
 ```
 
-
-*aggiungiamo un print con le cifre in ordine decrescente di misclassificazioni (normalizzate sul numero totale di osservazioni della cifra) per rendere più chiaro il commento? Aggiungerei anche un commento su come alcune misclassificazioni vadano in una sola direzione ed altre no, cosa che ci aspettiamo per le diverse forme delle distribuzioni nello scatterplot (e quindi nearest centroid classification sbaglia in una sola direzione) *
-In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $3+58+9+268=338$ misclassifications, as suggested by the scatterplot
+*aggiungiamo un print con le cifre in ordine decrescente di misclassificazioni (normalizzate sul numero totale di osservazioni della cifra) per rendere più chiaro il commento? Aggiungerei anche un commento su come alcune misclassificazioni vadano in una sola direzione ed altre no, cosa che ci aspettiamo per le diverse forme delle distribuzioni nello scatterplot (e quindi nearest centroid classification sbaglia in una sola direzione)* In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $3+58+9+268=338$ misclassifications, as suggested by the scatterplot
 
 ####Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the trsining error? Why so?
 
@@ -918,8 +920,74 @@ training.err
 
 As we can see, the test error rate achieved via leave-one-out cross validation turns out to be bigger than the training error. This is to be expected: the training error is a very optimistic estimate of the actual error rates, because it relies for testing on the same data used to train it (so it suffers a form of "overfitting" to the data). The leave-one-out CV procedure instead tests models, trained on all data minus a single observation, on that observation and averages the error rates obtained by repeating this procedure on each observation, so it is a slightly more realistic measure of how well the model would fare with unseen data (and thus tends to give a less-optimistic approximation of the AER).
 
-####
+#### Compute the $44$-fold cross validation error for each reduced-rank LDA classifier, including full-rank LDa, by using the partition of the observation provided by the variable `groupCV` below. Plot the error curve agains the number of discriminant variables. What classifier do you prefer? Comment.
+
 ```{r}
 groupCV<-rep(1:44, each=250)
 groupCV<-groupCV[1:length(pendigits$digit)]
 ```
+
+Let's start by observing that $44$ is also the number of different writers who contributed to writing the digits for the training data. If we were under the assumption that the observations are grouped in order of their "author", this $44$-fold cross validation could turn out to be a very effective way of measuring the predictive capability of our model: we would effectively test how well observation from an "unseen" (as in: left out from the training) writer are classified based on the training data of the remaining $33$. However, given the information available on the data-set we cannot be sure that this is the case.  
+In the following section we will use two different $44$-fold cross validation errors: one that takes a simple average of the error rates of all classes, and one that takes an average weighted on the amount of test data, to account for the fact that the last group of test data is slightly smaller than the others. Since the difference is of only $8$ observation, we do not expect any sensible difference, but for the sake of completeness we list both.
+
+Here's the plot with the simple arithmetic mean:
+
+```{r}
+k_f=44
+# Initialize error rates vector
+err=matrix( rep(0, k_f*min(k-1,p)), nrow=k_f )
+
+#Loop over folds
+for (i in 1:k_f) {
+  # Define test and train sets
+  test=(groupCV == i)
+  train=!test
+  
+  # Fit LDA model on training data
+  lda.fit = lda(digit~.,data=pendigits[train,])
+  
+  for(j in 1:min(k-1,p)){
+    # Predict test data using LDA model
+    lda.pred = predict(lda.fit, pendigits[test,], dimen = j)$class
+    # Compute error rates
+    err[i,j] = 1 - sum(lda.pred == pendigits$digit[test])/length(lda.pred)
+  }
+}
+error44=colMeans(err)
+dataf=as.data.frame(cbind(9:1,error44[9:1]))
+
+ggplot(dataf)+geom_line(aes(x=dataf[,1], y=dataf[,2]))+scale_x_discrete(limits=1:9)+
+  scale_y_continuous(breaks=error44)
+```
+As for the weighted mean:
+```{r}
+k_f=44
+# Initialize error rates vector
+err=matrix( rep(0, k_f*min(k-1,p)), nrow=k_f )
+l=rep(0,k-1)
+#Loop over folds
+for (i in 1:k_f) {
+  # Define test and train sets
+  test=(groupCV == i)
+  train=!test
+  
+  # Fit LDA model on training data
+  lda.fit = lda(digit~.,data=pendigits[train,])
+  
+  for(j in 1:min(k-1,p)){
+    # Predict test data using LDA model
+    lda.pred = predict(lda.fit, pendigits[test,], dimen = j)$class
+    l[j]=length(lda.pred)
+    # Compute error rates
+    err[i,j] = 1 - sum(lda.pred == pendigits$digit[test])/l[j]
+  }
+}
+error44_b= apply(err*l,2,FUN=sum) /n
+rbind(error44,error44_b) #error 44 b seems actually better...
+dataf=as.data.frame(cbind(9:1,error44_b[9:1]))
+
+ggplot(dataf)+geom_line(aes(x=dataf[,1], y=dataf[,2]))+scale_x_discrete(limits=1:9)+
+  scale_y_continuous(breaks=error44_b)
+```
+
+
