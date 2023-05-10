@@ -763,7 +763,6 @@ From the previous point we have obtained the the first two factors for each scho
 #setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
 #setwd("C:/Users/valer/Desktop/dati_lab_R")
 rm(list=ls())
-#setwd("~/UniTo/Multivariate Statistic/problemset_2")
 pendigits<-read.table("data/pendigits.txt", sep=",",head=F)
 names(pendigits)<-c(paste0(rep(c("x","y"),8),rep(1:8,each=2)),"digit")
 dim(pendigits)
@@ -795,7 +794,7 @@ We recall that the effectiveness of linear discriminant analysis relies on the a
 Let's start by assessing multivariate Gaussianity of the data via the chi-square Q-Q plot of the squared Mahalanobis distances.
 
 ```{r}
-p=list(0,1,2,3,4,5,6,7,8,9)
+pl=list(0,1,2,3,4,5,6,7,8,9)
 for(i in c(0,1,2,3,5,6,7,8,9))
 {
   by_digit= pendigits %>% dplyr::filter(digit==i) %>% dplyr::select(-digit)
@@ -851,31 +850,32 @@ lda.fit <- MASS::lda(digit ~ ., data = pendigits)
 lda.fit
 ```
 
+
 ```{r}
 lda.fit$scaling
 lda.pred <- predict(lda.fit)
 ```
 
 ```{r}
-lda.pred$x[1:5,]
+lda.pred$x[1:5,] #?
 lda.pred$x <- as.data.frame(lda.pred$x)
 means.hat <- aggregate(lda.pred$x,by=list(pendigits$digit),FUN=mean)[,-1]
 ```
 
-We can now display the first two LD variables in the below scatterplot :
+We can now display the first two LD variables in the below scatterplot, which gives the "optimal" bi-dimensional representation of the data for "separation purposes". Note that the assumptions under which this optimality holds, as previously discussed, are not really met, but we still expect a good result:
 
 ```{r}
-p <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
+pl <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
   geom_point(aes(colour = factor(pendigits$digit)), alpha = 0.7, show.legend = T) +
   stat_ellipse(aes(colour = factor(pendigits$digit))) +
   scale_color_manual(values = c("darkgreen",  "brown", "lightblue",  "magenta", "purple", "blue", "red", "lightgreen", "orange", "cyan")) +
   labs(colour = "digit") + 
   geom_point(as.data.frame(means.hat), mapping = aes(x = LD1, y = LD2, colour = factor(pendigits$digit)), 
              shape = 21, colour = "black", fill = lookup, size = 3.5, stroke = 1.0)
-p
+pl
 ```
 
-In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues: some clouds have some values a bit too much far away from the centroids (the points with the black boundaries), the worst case is the digit *5*. Also the digit *0* and *8* show this problem. In general all the other digits do not form a compact distribution around their centroids. \\ We can start making some speculations: the digit *4* and *2* have a clearer distributions than the others, because their shape is more distinguishable and unique. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. Further analysis will follow in next points. REFER ALSO TO THEORY???
+In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues as some clouds have some values a far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be the digit *5*, which appears to have somewhat of a "bi-modal projected distribution" in this plot, with points concentrated in two separated clouds. Digit *0* and *8* show some overlap with neighboring digits, and $1$ even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances. \\ We can start making some speculations: the digit *4* and *2* have a clearer separation from the others, with little overlap. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. Further analysis will follow in next points. REFER ALSO TO THEORY???
 
 #### Compute the confusion matrix on the training data. What are the groups more difficult to discriminate from the others? Comment in view of the answer to point 1.
 
@@ -887,7 +887,9 @@ addmargins(conf.mat)
 # n
 ```
 
-In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $3+58+9+268=338$ misclassifications, as suggested by the scatterplot.
+
+*aggiungiamo un print con le cifre in ordine decrescente di misclassificazioni (normalizzate sul numero totale di osservazioni della cifra) per rendere più chiaro il commento? Aggiungerei anche un commento su come alcune misclassificazioni vadano in una sola direzione ed altre no, cosa che ci aspettiamo per le diverse forme delle distribuzioni nello scatterplot (e quindi nearest centroid classification sbaglia in una sola direzione) *
+In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $3+58+9+268=338$ misclassifications, as suggested by the scatterplot
 
 ####Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the trsining error? Why so?
 
@@ -895,31 +897,28 @@ As requested, we proceed with the leave-one-out cross validations:
 
 ```{r}
 lda.fitCV<-lda(digit~.,data=pendigits, CV=TRUE)
-names(lda.fit)
-names(lda.fitCV)
-names(lda.pred)
+#names(lda.fitCV)
 ```
 
-Now we are able to compute the corresponding confusion matrix and error:
+And we compute the corresponding confusion matrix and error:
 
 ```{r}
 conf.mat<-table(predicted=lda.fitCV$class,true=pendigits$digit)
 addmargins(conf.mat)
 CV.err<-1-mean(lda.fitCV$class==pendigits$digit)
 CV.err
-(2+1)/n
 ```
 
-We compute also the training error to make a comparison:
+We compute also the training error of LDA used on all the data without CV, to make a comparison:
 
 ```{r}
 training.err<-1-mean(lda.pred$class==pendigits$digit)
 training.err
-(2+1)/n
 ```
 
-As we can see, the CV error is around 0.124 and the training error around 0.122, so we have ha difference in favor of the training error of 0.002.\\ WHY SO?
+As we can see, the test error rate achieved via leave-one-out cross validation turns out to be bigger than the training error. This is to be expected: the training error is a very optimistic estimate of the actual error rates, because it relies for testing on the same data used to train it (so it suffers a form of "overfitting" to the data). The leave-one-out CV procedure instead tests models, trained on all data minus a single observation, on that observation and averages the error rates obtained by repeating this procedure on each observation, so it is a slightly more realistic measure of how well the model would fare with unseen data (and thus tends to give a less-optimistic approximation of the AER).
 
+####
 ```{r}
 groupCV<-rep(1:44, each=250)
 groupCV<-groupCV[1:length(pendigits$digit)]
