@@ -25,6 +25,9 @@ library(ellipse)
 library(corrplot)
 library(MVN)
 library(sp)
+library(gridExtra)
+library(reshape2)
+library(ggrepel)
 ```
 
 ## Exercise 1
@@ -78,7 +81,13 @@ corrplot(R, method = 'color', type = 'lower', insig='blank',
 
 Looking at the plot of the correlations, we can immediately observe the presence of some groups of quite significantly correlated variables. The most evident one is composed by the variables *V5*, *V6*, *V7*, *V8* and *V9*. Looking at the type of the tests they represent, we can observe that all those variables are related to a linguistic or verbal area, hence we could have expected them to be highly correlated. Moreover, this may be suggest the fact that all those variables are simply catching different aspects of the same underlying and unobservable factor. (*...hence we do expect them to be highly correlated, and we may also expect them to be explained by a common factor*.)
 
-Whit a slightly greater level of uncertainty, we can also identify the group of the variables *V10*, *V11*, *V12* and *V13*. In this case the relationship among the variables is less clear. Nevertheless some researches on the type of the tests performed by Holzinger and Swineford - who collected the data - seem to suggest that all those tests were actually "speeded" tests (*... all those tests were actually focusing on the speed at which the tasks were solved, and so. they may refer to...*) and so may all refer to some ability of "quick-reasoning skills or responsiveness".
+With a slightly greater level of uncertainty, we can also identify the group of the variables *V10*, *V11*, *V12* and *V13*. In this case the relationship among the variables is less clear. Nevertheless some researches on the type of the tests performed by Holzinger and Swineford - who collected the data - seem to suggest that all those tests were actually "speeded" tests (*... all those tests were actually focusing on the speed at which the tasks were solved, and so. they may refer to...*) and so may all refer to some ability of "quick-reasoning skills or responsiveness".
+
+ALTERNATIVE WITHOUT MENTIONING THE DATASET FOUND:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
+
+With a slightly greater level of uncertainty, we can also identify the group of the variables *V10*, *V11*, *V12* and *V13*. In this case the relationship among the variables is less clear. Even more so we do not know how the tests have been performed. Nevertheless we may think to coding, additions, counting dots and recognition of capital letters as quite simple tasks and so we may expect that the students who score higher in these tests may be the most precise or concentrated. This may explain why the results of these tests are quite high correlated.
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
 
 Finally, we also mention the group of the variables *V20*, *V21*, *V22*, *V23* and *V9* - all quite related to some logical or problem solving skills.
 
@@ -388,7 +397,11 @@ restricted3
 
 Looking at this group - and also taking into account the fact that the variable *V10* representing an addition test load very high on the considered third factor - we may interpret this factor as an "arithmetic intelligence".
 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--togliamolo dai----------------------------------------------------
+
 To be more precise, we have searched some explanations about the tests performed by Holzinger and Swineford - who collected the data - in order to be able to give a better interpretation of the results. It turned out that both the addition and the counting dots tests were two speeded tests. This fits well with our previous interpretation, since it seems reasonable to believe that the students who solves computation quicker are also the ones with more aptitude toward mathematical reasoning.
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
 
 For what concerns the excluded variable *V21*, it corresponds to a numerical-puzzle test and therefore fit quite well in the group associated with an "arithmetic intelligence" factor.
 
@@ -552,7 +565,7 @@ corrplot(R_past, method = 'color', type = 'lower', insig='blank',
          addCoef.col ='black', number.cex = 0.8, diag=FALSE, col = COL2('RdBu', n = 200))
 ```
 
-As happened for the data related to the Grant-White school, we can observe that there is a group of high correlated data corresponding to variables *V5*, *V6*, *V7*, *V8* and *V9*. This, again, may suggest the existence of an underlying factor to which of those variable refer to. Those variables are also quite correlated with *V21*, *V22* and *V23*. Finally some other less clear correlation patterns appear among the variables *V10*, *V11*, *V12* and *V13* and maybe also among *V14*, *V15* and *v16*.
+As happened for the data related to the Grant-White school, we can observe that there is a group of high correlated data corresponding to variables *V5*, *V6*, *V7*, *V8* and *V9*. This, again, may suggest the existence of an underlying factor to which of those variable refer to. Those variables are also quite correlated with *V21*, *V22* and *V23*. Finally some other less clear correlation patterns appear among the variables *V10*, *V11*, *V12* and *V13* and maybe also among *V14*, *V15* and *V16*.
 
 Overall, however, the great majority of correlation coefficients are quite small and almost all positive.
 
@@ -607,7 +620,7 @@ group1_past <- var.meaning %>% dplyr::filter(var %in% group1_past) %>% dplyr::mu
 group1_past
 ```
 
-All the variables in this group have high loadings, moreover the variables in this group are exactly the same we have found in the group related to the first common factor of the Grant-White data. Therefore we may rightly say that, in both cases - with the Grant-White or Pasteur data - the first common factor may be intepret as "linguistic intelligence" or "verbal skills".
+All the variables in this group have high loadings, moreover the variables in this group are exactly the same we have found in the group related to the first common factor of the Grant-White data. Therefore we may rightly say that, in both cases - with the Grant-White or Pasteur data - the first common factor may be interpret as "linguistic intelligence" or "verbal skills".
 
 The second group comprehends:
 
@@ -656,6 +669,12 @@ group4_past
 ```
 
 The result we get however is different, let's look at it. Firstly we notice that all the variables have a loading higher then 0.5, thus all have a level of significance that is high enough. The three variables are at first glance not much related, nevertheless - as already mentioned at the very beginning, during the comment relative to the correlation plot of the Grant-White data - all these three test were "speeded" and so they can all be considered as different ways to test students ability to think and act quickly, maybe under pressure, as well as their responsiveness to different visual stimuli. Given this interpretation of the test, it is quite natural to denote this factor as "responsiveness".
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-- meglio ----------------------------------
+
+The result we get however is different, let's look at it. Firstly we notice that all the variables have a loading higher then 0.5, thus all have a level of significance that is high enough. The three variables are at first glance not much related, nevertheless - as already mentioned at the very beginning, during the comment relative to the correlation plot of the Grant-White data - all these three test, in our opinion, involve quite simple tasks for children whose age ranges between 11 to 16 years old. For this reason, we believe that the results of all these tests heavily rely on students ability to stay focused for a long time and be precise, maybe even under pressure. Given this interpretation of the test, it is quite natural to denote this factor as "concentration" or "precision".
+
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\--
 
 Actually, taking into account the previous difficulties in determine the group for *V11* as well as the fact that its loading for the fifth factor was not so small with respect to its maximum one, we may say that th Pasteur data succeed in better identify the "mysterious" previous fifth factor. In other words, we believe that the last factor of the previous analysis - that we have also pointed out as potentially difficult to interpret due to the low proportion of variance it explained - has instead clearly identified using the data from the second school.
 
@@ -793,9 +812,9 @@ so we do not expect to have priors that affect much our classifications.
 
 We recall that the effectiveness of linear discriminant analysis relies on the assumption of normality of the conditional distributions of the data given that they belong to one of the classes and the further assumption that all of these conditional distribution share the same covariance matrix. Thus it's worth have a quick overview of how well a Gaussian model fits the conditional distribution, and how the covariance matrices compare with each other given different classes.
 
-Let's start by assessing multivariate Gaussianity of the data via the chi-square Q-Q plot of the squared Mahalanobis distances.
+Let's start by assessing multivariate normality of the data via the chi-square Q-Q plot of the squared Mahalanobis distances.
 
-```{r}
+```{r, fig.width= 20, fig.height=20}
 pl=list(0,1,2,3,4,5,6,7,8,9)
 for(i in c(0,1,2,3,5,6,7,8,9))
 {
@@ -808,7 +827,7 @@ for(i in c(0,1,2,3,5,6,7,8,9))
       expand_limits(x = c(-0.0, 40.0)) +
       ggtitle(paste("Chi-squared QQ-plot of\n squared generalized distances\nDigit: ",i))
 }
-pl
+grid.arrange(pl[[1]], pl[[2]], pl[[3]], pl[[4]], pl[[6]], pl[[7]], pl[[8]], pl[[9]], pl[[10]], nrow=3)
 ```
 
 We left out the particular case of the digit $4$, which as an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may be Gaussian when projected in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$.
@@ -870,7 +889,7 @@ We can now display the first two LD variables in the below scatterplot, which gi
 
 ```{r}
 pl <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
-  geom_point(aes(colour = factor(pendigits$digit)), alpha = 0.7, show.legend = T) +
+  geom_point(aes(colour = factor(pendigits$digit)), alpha = 0.5, show.legend = T) +
   stat_ellipse(aes(colour = factor(pendigits$digit))) +
   scale_color_manual(values = c("darkgreen",  "brown", "lightblue",  "magenta", "purple", "blue", "red", "lightgreen", "orange", "cyan")) +
   labs(colour = "digit") + 
@@ -887,13 +906,33 @@ In order to have a better understanding of how well the first two LD variables d
 
 ```{r}
 conf.mat<-table(predicted=lda.pred$class,true=pendigits$digit)
-addmargins(conf.mat)
+conf.mat <- addmargins(conf.mat)
+conf.mat
 # n
+```
+
+```{r}
+digits <- rownames(conf.mat)[-11]
+true_num <- conf.mat[11,1:10]
+predicted_num <- conf.mat[1:10,11]
+predictions <- data.frame(digit = digits, true_num = true_num, predicted_num = predicted_num)
+predictions <- melt(predictions)
+p1 <- ggplot(predictions, aes(x = digit, y = value, fill = variable)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  scale_fill_manual(values = c("royalblue3", "darkorange"), 
+                    labels = c("true", "predicted"), name = "count per digit")
+misclassifications <- conf.mat[11,1:10] - diag(conf.mat)[-11]
+misclassifications <- data.frame(digit = digits, mis = misclassifications)
+p2 <- ggplot(misclassifications, aes(x = digit, y = mis, group = 1)) + 
+  geom_point(size = 3) + geom_line(linewidth = 1) + 
+  ggtitle("total counts of misclassifications for each digit") + 
+  theme(title = element_text(hjust = 0.5))
+grid.arrange(p1, p2, nrow = 2)
 ```
 
 *aggiungiamo un print con le cifre in ordine decrescente di misclassificazioni (normalizzate sul numero totale di osservazioni della cifra) per rendere più chiaro il commento? Aggiungerei anche un commento su come alcune misclassificazioni vadano in una sola direzione ed altre no, cosa che ci aspettiamo per le diverse forme delle distribuzioni nello scatterplot (e quindi nearest centroid classification sbaglia in una sola direzione)* In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $3+58+9+268=338$ misclassifications, as suggested by the scatterplot
 
-####Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the trsining error? Why so?
+### Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the training error? Why so?
 
 As requested, we proceed with the leave-one-out cross validations:
 
@@ -920,14 +959,14 @@ training.err
 
 As we can see, the test error rate achieved via leave-one-out cross validation turns out to be bigger than the training error. This is to be expected: the training error is a very optimistic estimate of the actual error rates, because it relies for testing on the same data used to train it (so it suffers a form of "overfitting" to the data). The leave-one-out CV procedure instead tests models, trained on all data minus a single observation, on that observation and averages the error rates obtained by repeating this procedure on each observation, so it is a slightly more realistic measure of how well the model would fare with unseen data (and thus tends to give a less-optimistic approximation of the AER).
 
-#### Compute the $44$-fold cross validation error for each reduced-rank LDA classifier, including full-rank LDa, by using the partition of the observation provided by the variable `groupCV` below. Plot the error curve agains the number of discriminant variables. What classifier do you prefer? Comment.
+#### Compute the $44$-fold cross validation error for each reduced-rank LDA classifier, including full-rank LDA, by using the partition of the observation provided by the variable `groupCV` below. Plot the error curve against the number of discriminant variables. What classifier do you prefer? Comment.
 
 ```{r}
 groupCV<-rep(1:44, each=250)
 groupCV<-groupCV[1:length(pendigits$digit)]
 ```
 
-Let's start by observing that $44$ is also the number of different writers who contributed to writing the digits for the training data. If we were under the assumption that the observations are grouped in order of their "author", this $44$-fold cross validation could turn out to be a very effective way of measuring the predictive capability of our model: we would effectively test how well observation from an "unseen" (as in: left out from the training) writer are classified based on the training data of the remaining $33$. However, given the information available on the data-set we cannot be sure that this is the case.  
+Let's start by observing that $44$ is also the number of different writers who contributed to writing the digits for the training data. If we were under the assumption that the observations are grouped in order of their "author", this $44$-fold cross validation could turn out to be a very effective way of measuring the predictive capability of our model: we would effectively test how well observation from an "unseen" (as in: left out from the training) writer are classified based on the training data of the remaining $33$. However, given the information available on the data-set we cannot be sure that this is the case.\
 In the following section we will use two different $44$-fold cross validation errors: one that takes a simple average of the error rates of all classes, and one that takes an average weighted on the amount of test data, to account for the fact that the last group of test data is slightly smaller than the others. Since the difference is of only $8$ observation, we do not expect any sensible difference, but for the sake of completeness we list both.
 
 Here's the plot with the simple arithmetic mean:
@@ -954,12 +993,10 @@ for (i in 1:k_f) {
   }
 }
 error44=colMeans(err)
-dataf=as.data.frame(cbind(9:1,error44[9:1]))
-
-ggplot(dataf)+geom_line(aes(x=dataf[,1], y=dataf[,2]))+scale_x_discrete(limits=1:9)+
-  scale_y_continuous(breaks=error44)
 ```
+
 As for the weighted mean:
+
 ```{r}
 k_f=44
 # Initialize error rates vector
@@ -990,4 +1027,42 @@ ggplot(dataf)+geom_line(aes(x=dataf[,1], y=dataf[,2]))+scale_x_discrete(limits=1
   scale_y_continuous(breaks=error44_b)
 ```
 
+```{r, fig.height=10}
+dataf=data.frame("rank" = as.character(9:1), "arithmetic_mean" = error44[9:1], "weighted_mean" = error44_b[9:1])
+dataf <- melt(dataf)
 
+ggplot(dataf, aes(x=rank, y=value, label = as.character(round(value, 4)), color = variable, group = variable, shape = variable)) + geom_point(size = 3) + 
+  geom_line() + geom_label_repel() +
+  scale_x_discrete(limits=levels(factor(1:9))) +
+  scale_color_manual(values = c("darkorange", "royalblue3"))
+```
+
+```{r}
+k_f=44
+# Initialize error rates vector
+err=matrix( rep(0, k_f*min(k-1,p)), nrow=k_f )
+l=rep(0,k-1)
+#Loop over folds
+for (i in 1:k_f) {
+  # Define test and train sets
+  test=(groupCV == i)
+  train=!test
+  
+  # Fit LDA model on training data
+  lda.fit = lda(digit~.,data=pendigits[train,])
+  
+  for(j in 1:min(k-1,p)){
+    # Predict test data using LDA model
+    lda.pred = predict(lda.fit, pendigits[test,], dimen = j)$class
+    l[j]=length(lda.pred)
+    # Compute error rates
+    err[i,j] = 1 - sum(lda.pred == pendigits$digit[test])/l[j]
+  }
+}
+error44_b= apply(err*l,2,FUN=sum) /n
+rbind(error44,error44_b) #error 44 b seems actually better...
+dataf=as.data.frame(cbind(9:1,error44_b[9:1]))
+
+ggplot(dataf)+geom_line(aes(x=dataf[,1], y=dataf[,2]))+scale_x_discrete(limits=1:9)+
+  scale_y_continuous(breaks=error44_b)
+```
