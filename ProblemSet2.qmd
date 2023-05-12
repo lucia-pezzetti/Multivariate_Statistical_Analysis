@@ -863,8 +863,8 @@ for(i in 1:10){
     
 ```
 
-MAYBE NOT SUCH A GOOD IDEA We should also keep in mind that, even if the assumptions partially fail, the robustness of LDA could guarantee fairly good results regardless.
-In order to have a further check on the multivariate gaussianity, we perform for each digit a statistical test. The null hypothesis is the multivariate gaussianity.
+MAYBE NOT SUCH A GOOD IDEA We should also keep in mind that, even if the assumptions partially fail, the robustness of LDA could guarantee fairly good results regardless. In order to have a further check on the multivariate gaussianity, we perform for each digit a statistical test. The null hypothesis is the multivariate gaussianity.
+
 ```{r}
 result=matrix(data=NA,nrow = 10,ncol=2)
 for(i in c(0,1,2,3))
@@ -886,6 +886,7 @@ for(i in c(5,6,7,8,9))
 }
 result
 ```
+
 -Qui vengono p-values praticamente nulli per ogni digit, secondo me non è molto significativo tenere il test-\\
 
 #### Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory.
@@ -921,8 +922,7 @@ pl <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) +
 pl
 ```
 
-In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues as some clouds have some values far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be the digit *5*, which appears to have somewhat of a "bi-modal projected distribution" in this plot, with points concentrated in two separated clouds. Digit *0* and *8* show some overlap with neighboring digits, and $1$ even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances. \\ We can start making some speculations: the digit *4* and *2* have a clearer separation from the others, with little overlap. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. \\
-The reasons behind this not great outcome could arise from the fact that the assumptions under which the optimal discrimination holds, as previously shown, are not fully met. Another motivation, as we can see in the table above, is that the sum of the trace for first two LD variables is approximately $0.6$, which is a value not particularly high. Further analysis will follow in next points. 
+In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues as some clouds have some values far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be the digit *5*, which appears to have somewhat of a "bi-modal projected distribution" in this plot, with points concentrated in two separated clouds. Digit *0* and *8* show some overlap with neighboring digits, and $1$ even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances. \\ We can start making some speculations: the digit *4* and *2* have a clearer separation from the others, with little overlap. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. \\ The reasons behind this not great outcome could arise from the fact that the assumptions under which the optimal discrimination holds, as previously shown, are not fully met. Another motivation, as we can see in the table above, is that the sum of the trace for first two LD variables is approximately $0.6$, which is a value not particularly high. Further analysis will follow in next points.
 
 #### Compute the confusion matrix on the training data. What are the groups more difficult to discriminate from the others? Comment in view of the answer to point 1.
 
@@ -934,7 +934,9 @@ conf.mat <- addmargins(conf.mat)
 conf.mat
 # n
 ```
+
 We also print the misclassifications for each digit:
+
 ```{r}
 A=matrix(data=NA,nrow=10,ncol=2)
 conf.mat_2=conf.mat[-11,]
@@ -944,6 +946,7 @@ for(i in 1:10){
 A[,1]=c(0,1,2,3,4,5,6,7,8,9)
 A
 ```
+
 ```{r}
 digits <- rownames(conf.mat)[-11]
 true_num <- conf.mat[11,1:10]
@@ -963,7 +966,7 @@ p2 <- ggplot(misclassifications, aes(x = digit, y = mis, group = 1)) +
 grid.arrange(p1, p2, nrow = 2)
 ```
 
-In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 28 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $341$ misclassifications, as suggested by the scatterplot. Another interesting feature that arises from the confusion matrix is how some digits are misclassified predominantly in one direction. For example the digit *1* has been misclassifed as *2* $206$ times, meanwhile the digit *2* as *1* only $23$ times. The motivation under this behaviour is clear in the scatterplot: due to the high variance of the digit *1* a lot of its observations gets close to the centroid of the digit *2* and so they end up being classified as $2$ by the nearest centroid classification. Instead this is not true in the opposite direction. 
+In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 28 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $341$ misclassifications, as suggested by the scatterplot. Another interesting feature that arises from the confusion matrix is how some digits are misclassified predominantly in one direction. For example the digit *1* has been misclassifed as *2* $206$ times, meanwhile the digit *2* as *1* only $23$ times. The motivation under this behaviour is clear in the scatterplot: due to the high variance of the digit *1* a lot of its observations gets close to the centroid of the digit *2* and so they end up being classified as $2$ by the nearest centroid classification. Instead this is not true in the opposite direction.
 
 ### Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the training error? Why so?
 
@@ -1054,10 +1057,6 @@ for (i in 1:k_f) {
 }
 error44_b= apply(err*l,2,FUN=sum) /n
 rbind(error44,error44_b) #error 44 b seems actually better...
-dataf=as.data.frame(cbind(9:1,error44_b[9:1]))
-
-ggplot(dataf)+geom_line(aes(x=dataf[,1], y=dataf[,2]))+scale_x_discrete(limits=1:9)+
-  scale_y_continuous(breaks=error44_b)
 ```
 
 ```{r, fig.height=10}
@@ -1065,37 +1064,7 @@ dataf=data.frame("rank" = as.character(9:1), "arithmetic_mean" = error44[9:1], "
 dataf <- melt(dataf)
 
 ggplot(dataf, aes(x=rank, y=value, label = as.character(round(value, 4)), color = variable, group = variable, shape = variable)) + geom_point(size = 3) + 
-  geom_line() + geom_label_repel() +
+  geom_line() + geom_label_repel(show.legend = F) +
   scale_x_discrete(limits=levels(factor(1:9))) +
   scale_color_manual(values = c("darkorange", "royalblue3"))
-```
-
-```{r}
-k_f=44
-# Initialize error rates vector
-err=matrix( rep(0, k_f*min(k-1,p)), nrow=k_f )
-l=rep(0,k-1)
-#Loop over folds
-for (i in 1:k_f) {
-  # Define test and train sets
-  test=(groupCV == i)
-  train=!test
-  
-  # Fit LDA model on training data
-  lda.fit = lda(digit~.,data=pendigits[train,])
-  
-  for(j in 1:min(k-1,p)){
-    # Predict test data using LDA model
-    lda.pred = predict(lda.fit, pendigits[test,], dimen = j)$class
-    l[j]=length(lda.pred)
-    # Compute error rates
-    err[i,j] = 1 - sum(lda.pred == pendigits$digit[test])/l[j]
-  }
-}
-error44_b= apply(err*l,2,FUN=sum) /n
-rbind(error44,error44_b) #error 44 b seems actually better...
-dataf=as.data.frame(cbind(9:1,error44_b[9:1]))
-
-ggplot(dataf)+geom_line(aes(x=dataf[,1], y=dataf[,2]))+scale_x_discrete(limits=1:9)+
-  scale_y_continuous(breaks=error44_b)
 ```
