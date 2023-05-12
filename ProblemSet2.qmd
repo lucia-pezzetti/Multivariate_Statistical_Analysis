@@ -29,6 +29,7 @@ library(gridExtra)
 library(reshape2)
 library(ggrepel)
 library(goft)
+library(matrixcalc)
 ```
 
 ## Exercise 1
@@ -786,20 +787,20 @@ dim(pendigits)
 head(pendigits)
 ```
 
-```{r}
+```{r, echo=FALSE, include=FALSE}
 lookup<-c("darkgreen", "brown", "lightblue", "magenta", "purple",
 "blue", "red", "lightgreen", "orange", "cyan")
 names(lookup)<-as.character(0:9)
 digit.col<-lookup[as.character(pendigits$digit)]
 ```
 
-```{r}
+```{r, echo=FALSE,}
 n <- nrow(pendigits)
 p <- ncol(pendigits)
-k <- length(unique(pendigits$digit)); k
+k <- length(unique(pendigits$digit))
 ```
 
-Let us start with a little data exploration, in order to better understand and interpret the results below.\
+Let us start with a little data exploration, in order to better understand and interpret the results below.
 We note that the data-set is not really complete: we would expect $44\cdot 250=11000$ observations, but we only have $10992$. This is almost irrelevant for all future purposes, but we may need to be a bit more careful in the last sections, e.g. regarding k-fold cross validation, if we want to be accurate. We also notice that the frequencies of the digits are fairly similar:
 
 ```{r}
@@ -812,7 +813,7 @@ We recall that the effectiveness of linear discriminant analysis relies on the a
 
 Let's start by assessing multivariate normality of the data via the chi-square Q-Q plot of the squared Mahalanobis distances.
 
-```{r, fig.width= 20, fig.height=20}
+```{r, fig.width= 20, fig.height=20, echo=FALSE}
 pl=list(0,1,2,3,4,5,6,7,8,9)
 for(i in c(0,1,2,3,5,6,7,8,9))
 {
@@ -830,7 +831,7 @@ grid.arrange(pl[[1]], pl[[2]], pl[[3]], pl[[4]], pl[[6]], pl[[7]], pl[[8]], pl[[
 
 We left out the particular case of the digit $4$, which as an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may be Gaussian when projected in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$.
 
-```{r}
+```{r, echo=FALSE}
 by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
   x.bar=colMeans(by_digit)
   S=cov(by_digit)
@@ -850,7 +851,7 @@ for(i in 1:10){
   by_digit= pendigits %>% dplyr::filter(digit==(i-1)) %>% dplyr::select(-digit)
   covar[[i]]=cov(by_digit)
 }
-library(matrixcalc)
+
 for(i in 1:10){
   for(j in 1:(i-1)){
     if(i>1){
