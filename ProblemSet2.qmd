@@ -500,8 +500,8 @@ Before plotting the data, we also notice that together with the assumption of no
 In our situation, the correlation coefficient is already very low, therefore we do not expect to find bivariate outliers that are extreme observations for both observations. For the same reason, we also expect to find circular contour plots.
 
 ```{r, fig.width=8, fig.height=8, echo = FALSE}
-a <- (n-0.5)/n
-label = rep("", n)
+a_GW <- (n-0.5)/n
+label_GW = rep("", n)
 
 pl <- ggplot(as.data.frame(scores_GrWh), aes(x = Factor1, y = Factor2)) + 
   geom_point() + stat_ellipse(level = a)
@@ -518,12 +518,12 @@ dat <- data.frame(
   in.ell = as.logical(point.in.polygon(points$x, points$y, ell$x, ell$y))
 )
 
-label[!dat$in.ell] = as.character(which(!dat$in.ell))
+label_GW[!dat$in.ell] = as.character(which(!dat$in.ell))
 
-pl_sc_GW <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label),
+pl_sc_GW <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label_GW),
             hjust = 1.0, nudge_y = -0.15, nudge_x = 0.05, size = 5, parse = T) +
 stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) + 
-  stat_ellipse(level = a, color = "darkorange") + 
+  stat_ellipse(level = a_GW, color = "darkorange") + 
   scale_color_manual(values = c("red", "black")) + 
   geom_text(mapping = aes(x = 0.25, y = 2.7, label = "level = (n-0.5)/n = 0.9965"), 
             colour = "darkorange") +
@@ -536,7 +536,8 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
             nudge_y = -0.1, colour = "darkorchid3") +
   xlab("Factor 1") + ylab("Factor 2") + 
   ggtitle("Scatter-plot of the first two factor scores for the Grant-White students") +
-  theme(plot.title = element_text(hjust = 0))
+  theme(plot.title = element_text(hjust = 0)) +
+  xlim(-3.3, 3.3) + ylim(-3.3, 3.3)
 pl_sc_GW
 ```
 
@@ -726,9 +727,9 @@ means.hat <- data.frame("x_bar" = means.hat[1], "y_bar" = means.hat[2])
 means.hat
 ```
 
-```{r, fig.width=8, fig.height=8, echo=FALSE}
-a <- (n-0.5)/n
-label = rep("", n)
+```{r, fig.width=16, fig.height=8, echo=FALSE}
+a_P <- (n-0.5)/n
+label_P = rep("", n)
 
 pl <- ggplot(as.data.frame(scores_Past), aes(x = Factor1, y = Factor2)) + 
   geom_point() + stat_ellipse(level = a)
@@ -745,12 +746,12 @@ dat <- data.frame(
   in.ell = as.logical(point.in.polygon(points$x, points$y, ell$x, ell$y))
 )
 
-label[!dat$in.ell] = as.character(which(!dat$in.ell))
+label_P[!dat$in.ell] = as.character(which(!dat$in.ell))
 
-pl_sc_P <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label),
+pl_sc_P <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label_P),
             nudge_y = -0.2, nudge_x = 0.0, size = 5, parse = T) +
 stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) + 
-  stat_ellipse(level = a, color = "darkorange") + 
+  stat_ellipse(level = a_P, color = "darkorange") + 
   scale_color_manual(values = c("red", "black")) + 
   geom_text(mapping = aes(x = 0.25, y = 2.7, label = "level = (n-0.5)/n = 0.9965"), 
             colour = "darkorange") +
@@ -763,10 +764,10 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
             nudge_y = -0.15, colour = "darkorchid3") +
   xlab("Factor 1") + ylab("Factor 2") + 
   ggtitle("Scatter-plot of the first two factor scores for the Pasteur students") +
-  theme(plot.title = element_text(hjust = 0.5))
+  theme(plot.title = element_text(hjust = 0.5)) +
+  xlim(-3.3, 3.3) + ylim(-3.3, 3.3)
 
-pl_sc_P
-pl_sc_GW
+grid.arrange(pl_sc_GW, pl_sc_P, nrow = 1)
 ```
 
 We again can observe that all the desired assumptions are satisfied. Only two outliers have now been identified, corresponding to observations 47 and 144. Globally, this plot seems to agree with the Grant-White one.
