@@ -864,6 +864,29 @@ for(i in 1:10){
 ```
 
 MAYBE NOT SUCH A GOOD IDEA We should also keep in mind that, even if the assumptions partially fail, the robustness of LDA could guarantee fairly good results regardless.
+In order to have a further check on the multivariate gaussianity, we perform for each digit a statistical test. The null hypothesis is the multivariate gaussianity.
+```{r}
+result=matrix(data=NA,nrow = 10,ncol=2)
+for(i in c(0,1,2,3))
+{
+  by_digit= pendigits %>% dplyr::filter(digit==i) %>% dplyr::select(-digit)
+  mvshapiro_test(as.matrix(by_digit))
+  result[i+1,2]=mvshapiro_test(as.matrix(by_digit))$p.value
+}
+for(i in 0:9){
+  result[i+1,1]=i
+}
+by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
+result[5,2]=mvshapiro_test(as.matrix(by_digit))$p.value
+for(i in c(5,6,7,8,9))
+{
+  by_digit= pendigits %>% dplyr::filter(digit==i) %>% dplyr::select(-digit)
+  mvshapiro_test(as.matrix(by_digit))
+  result[i+1,2]=mvshapiro_test(as.matrix(by_digit))$p.value
+}
+result
+```
+-Qui vengono p-values praticamente nulli per ogni digit, secondo me non è molto significativo tenere il test-\\
 
 #### Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory.
 
@@ -898,7 +921,8 @@ pl <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) +
 pl
 ```
 
-In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues as some clouds have some values a far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be the digit *5*, which appears to have somewhat of a "bi-modal projected distribution" in this plot, with points concentrated in two separated clouds. Digit *0* and *8* show some overlap with neighboring digits, and $1$ even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances. \\ We can start making some speculations: the digit *4* and *2* have a clearer separation from the others, with little overlap. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. Further analysis will follow in next points. REFER ALSO TO THEORY???
+In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top and also *2* at the left. Meanwhile for the other digits we have some issues as some clouds have some values far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be the digit *5*, which appears to have somewhat of a "bi-modal projected distribution" in this plot, with points concentrated in two separated clouds. Digit *0* and *8* show some overlap with neighboring digits, and $1$ even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances. \\ We can start making some speculations: the digit *4* and *2* have a clearer separation from the others, with little overlap. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. \\
+The reasons behind this not great outcome could arise from the fact that the assumptions under which the optimal discrimination holds, as previously shown, are not fully met. Another motivation, as we can see in the table above, is that the sum of the trace for first two LD variables is approximately $0.6$, which is a value not particularly high. Further analysis will follow in next points. 
 
 #### Compute the confusion matrix on the training data. What are the groups more difficult to discriminate from the others? Comment in view of the answer to point 1.
 
@@ -910,7 +934,16 @@ conf.mat <- addmargins(conf.mat)
 conf.mat
 # n
 ```
-
+We also print the misclassifications for each digit:
+```{r}
+A=matrix(data=NA,nrow=10,ncol=2)
+conf.mat_2=conf.mat[-11,]
+for(i in 1:10){
+  A[i,2]=sum(conf.mat_2[-i,][,i])
+}
+A[,1]=c(0,1,2,3,4,5,6,7,8,9)
+A
+```
 ```{r}
 digits <- rownames(conf.mat)[-11]
 true_num <- conf.mat[11,1:10]
@@ -930,7 +963,7 @@ p2 <- ggplot(misclassifications, aes(x = digit, y = mis, group = 1)) +
 grid.arrange(p1, p2, nrow = 2)
 ```
 
-*aggiungiamo un print con le cifre in ordine decrescente di misclassificazioni (normalizzate sul numero totale di osservazioni della cifra) per rendere più chiaro il commento? Aggiungerei anche un commento su come alcune misclassificazioni vadano in una sola direzione ed altre no, cosa che ci aspettiamo per le diverse forme delle distribuzioni nello scatterplot (e quindi nearest centroid classification sbaglia in una sola direzione)* In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $3+58+9+268=338$ misclassifications, as suggested by the scatterplot
+In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 6 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of $341$ misclassifications, as suggested by the scatterplot. Another interesting feature that arises from the confusion matrix is how some digits are misclassified predominantly in one direction. For example the digit *1* has been misclassifed as *2* $206$ times, meanwhile the digit *2* as *1* only $23$ times. The motivation under this behaviour is clear in the scatterplot: due to the high variance of the digit *1* a lot of its observations gets close to the centroid of the digit *2* and so they end up being classified as $2$ by the nearest centroid classification. Instead this is not true in the opposite direction. 
 
 ### Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the training error? Why so?
 
