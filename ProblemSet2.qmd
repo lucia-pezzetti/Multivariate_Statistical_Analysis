@@ -117,7 +117,7 @@ ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), y = sort(d))) +
   ggtitle("Chi-squared QQ-plot of squared generalized distances - Grant-White school")
 ```
 
-As we can see from the plot, the points deviate from the straight line only in the right top end. This indicates that the largest values are more spread out than for a $\chi_{24}^2$: the tail of the chi-square distribution is heavier. So, the plot seems to suggest that the Mahalanobis distances in the sample are more right skewed than you would expect to see with a multivariate normal.
+As we can see from the plot, the points deviate from the straight line only in the right top end. This indicates that the largest values are more spread out than for a $\chi_{24}^2$: the tail of the chi-square distribution is lighter. So, the plot seems to suggest that the Mahalanobis distances in the sample are more right skewed than you would expect to see with a multivariate normal.
 
 Nevertheless, we also observe that the points responsible for this potential non-gaussian behavior are only three, hence they could simply be multivariate outliers.
 
@@ -775,13 +775,12 @@ From the previous point we have obtained the the first two factors for each scho
 
 ## Exercise 2
 
-```{r}
-#setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
-#setwd("C:/Users/valer/Desktop/dati_lab_R")
+For exercise 2 we are going to consider the following dataset `pendigits`:
+```{r, echo=FALSE}
 rm(list=ls())
 pendigits<-read.table("data/pendigits.txt", sep=",",head=F)
 names(pendigits)<-c(paste0(rep(c("x","y"),8),rep(1:8,each=2)),"digit")
-dim(pendigits)
+#dim(pendigits)
 head(pendigits)
 ```
 
@@ -792,21 +791,21 @@ names(lookup)<-as.character(0:9)
 digit.col<-lookup[as.character(pendigits$digit)]
 ```
 
-```{r, echo=FALSE,}
+```{r, echo=FALSE}
 n <- nrow(pendigits)
 p <- ncol(pendigits)
 k <- length(unique(pendigits$digit))
 ```
 
-Let us start with a little data exploration, in order to better understand and interpret the results below. We note that the data-set is not really complete: we would expect $44\cdot 250=11000$ observations, but we only have $10992$. This is almost irrelevant for all future purposes, but we may need to be a bit more careful in the last sections, e.g. regarding k-fold cross validation, if we want to be accurate. We also notice that the frequencies of the digits are fairly similar:
+Let us start with a little data exploration in order to better understand and interpret the results below. We note that the data-set is missing some observations: we would expect $44\cdot 250=11000$ observations, but we only have $10992$. This is almost irrelevant for all future purposes, but we may need to be a bit more careful in the last sections - regarding k-fold cross validation - if we want to be accurate. We also notice that the frequencies of the digits are fairly similar:
 
-```{r}
+```{r, echo=FALSE}
 table(pendigits$digit)
 ```
 
-so we do not expect to have priors that affect much our classifications.
+so we do not expect the priors to add a strong correction term in our classifications, since they are almost uniform.
 
-We recall that the effectiveness of linear discriminant analysis relies on the assumption of normality of the conditional distributions of the data given that they belong to one of the classes and the further assumption that all of these conditional distribution share the same covariance matrix. Thus it's worth have a quick overview of how well a Gaussian model fits the conditional distribution, and how the covariance matrices compare with each other given different classes.
+We recall that the effectiveness of linear discriminant analysis relies on the assumption of normality of the conditional distributions of the data given that they belong to one of the classes and the further assumption that all these conditional distributions share the same covariance matrix. Thus it is worth having a quick overview of how well a Gaussian model fits the conditional distribution, and how the covariance matrices compare with each other given different classes.
 
 Let's start by assessing multivariate normality of the data via the chi-square Q-Q plot of the squared Mahalanobis distances.
 
@@ -826,7 +825,7 @@ for(i in c(0,1,2,3,5,6,7,8,9))
 grid.arrange(pl[[1]], pl[[2]], pl[[3]], pl[[4]], pl[[6]], pl[[7]], pl[[8]], pl[[9]], pl[[10]], nrow=3)
 ```
 
-We left out the particular case of the digit $4$, which as an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may be Gaussian when projected in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$.
+We left out the particular case of the digit $4$, which has an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may still be a Gaussian vector without a pdf. To assess this, we project it in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$:
 
 ```{r, echo=FALSE}
 by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
@@ -839,10 +838,10 @@ by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
       ggtitle("Chi-squared QQ-plot of\n squared generalized distances")
 ```
 
-It seems that all these distribution behave well for the most part, but suffer to different extents the effects of lighter-than-expected right tails. In particular, data relative to digits $3$, $6$ and $9$ could be decently modeled by a Gaussian distribution, the same cannot be said the others.\
-Now we compare variances. We do not really expect them to be all similar, particularly considered the case of $4$.
+It seems that all these distributions suffer, to different extents, the effects of heavier-than-expected right tails, therefore we cannot assess gaussianity of any conditional distribution.\
+We proceed with the analysis, keeping in mind that, even if the assumptions fail, the robustness of LDA could guarantee fairly good results.
 
-To check that the conditional densities all share the same covariance matrix, we compute the Frobenius distances between each class covariance matrix and the pooled covariance matrix, which is ultimately the one used in LDA as estimator of the - allegedly - shared population covariance matrix among classes.
+Now we compare variances. To check that the conditional densities all share the same covariance matrix, we compute the Frobenius distances between each class covariance matrix and the pooled covariance matrix, which is ultimately the one used in LDA as estimator of the - allegedly - shared population covariance matrix among classes.
 
 ```{r}
 covar=list()
@@ -866,33 +865,31 @@ data.frame(digit=0:9, frobenius=f)
     
 ```
 
-We find that there are some digit, namely $5$, $8$, $0$ and $1$, for which the assumption of equal class covariance matrix might be "stretched". We keep this in mind for future reference, as this might be linked to worse performance of the classification of these digits - even more so if we consider that also the normality assumption seemed to be unfitting for these same digits, so we lack any theoretical guarantees on a good performance of LDA.
-
-We should also keep in mind that, even if the assumptions partially fail, the robustness of LDA could guarantee fairly good results regardless.
+We find that there are some digits, namely $5$, $8$, $0$ and $1$, for which the assumption of equal class covariance matrix might be more "stretched" than for the others. We keep this in mind for future reference, as this might be linked to worse performance of the classification of these digits. Even more so if we consider that also the normality assumption seemed to be unfitting, so we lack theoretical guarantees on a good performance of LDA.
 
 #### 1. Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory.
 
-First of all, as requested, we proceed by implementing the linear discriminant analysis.
+First of all, as requested, we proceed by implementing the linear discriminant analysis:
 
 ```{r}
 lda.fit <- MASS::lda(digit ~ ., data = pendigits)
 lda.fit
 ```
 
-Note that, by default, the priors are the proportions of occurrences of each class in the data set, and they are all pretty similar. The returned means are the centroid coordinates (i.e.: the sample means restricted to the observations of each class) CHECK. COMMENTS ON SCALING AND PROPORTION OF TRACE?
+Note that, by default, the priors are the proportions of occurrences of each class in the data set, and they are all pretty similar.
 
 ```{r}
 lda.pred <- predict(lda.fit)
 ```
 
-```{r}
+```{r, echo=FALSE}
 lda.pred$x <- as.data.frame(lda.pred$x)
 means.hat <- aggregate(lda.pred$x,by=list(pendigits$digit),FUN=mean)[,-1]
 ```
 
-We can now display the first two LD variables in the below scatterplot, which gives the "optimal" bi-dimensional representation of the data for "separation purposes". Note that the assumptions under which this optimality holds, as previously discussed, are not really met, but we still expect a good result:
+We can now display the first two LD variables in the below scatterplot, which gives the "optimal" bi-dimensional representation of the data for "separation purposes" (i.e. with minimized within-class variance and maximized between-class variance). Note that the assumptions under which this optimality holds, as previously discussed, are not really met, but we still expect a good result:
 
-```{r}
+```{r, echo=FALSE}
 pl <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
   geom_point(aes(colour = factor(pendigits$digit)), alpha = 0.5, show.legend = T) +
   stat_ellipse(aes(colour = factor(pendigits$digit))) +
@@ -903,35 +900,42 @@ pl <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) +
 pl
 ```
 
-This plot gives, by definition of the linear discriminant directions, the "best" bi-dimensional representation of the data for separation purposes. ---- An analysis of the considered scatterplot should therefore give an idea of the overall behavior of the classifier. Note that since the proportion of trace of the first two LDs is just around $0.6$ we do not expect the information provided by the plot to be entirely accurate for a full rank LDA. Indeed, the computations of the misclassification rates of the reduced rank LDA below tell us that keeping only two dimensions does not give accurate results. ---KEEP IT? In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top, and so does *2* at the left. Meanwhile for the other digits we have some issues as some clouds have some values far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be the digit *5*, which appears to have somewhat of a "bi-modal projected distribution" in this plot, with points concentrated in two separated clouds. Digit *0* and *8* show some overlap with neighboring digits, and *1* even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances. \\ We can start making some speculations: the digit *4* and *2* have a clearer separation from the others, with little overlap. Instead, for example the digit *5* could be confused with *9* due to their similar conformations; same for *8* and *0*. \\ The reasons behind this not great outcome could arise from the fact that the assumptions under which the optimal discrimination holds, as previously shown, are not fully met. Another motivation, as we can see in the table above, is that the sum of the trace for first two LD variables is approximately $0.6$, which is a value not particularly high. Further analysis will follow in next points.
+An analysis of the considered scatterplot should therefore give an idea of the overall behavior of the classifier. However, since the proportion of trace of the first two LDs is just around $0.6$, we do not expect the information provided by the plot to be entirely accurate for a full rank LDA.  
+In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top, and so does *2* at the left. Meanwhile the other digits have clouds with some values far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be digit *5*, which appears to have somewhat of a "bi-modal projected distribution", with points concentrated in two separated regions. Digits *0* and *8* show some overlap with the neighboring ones, and *1* even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances in the LD1-LD2 plane.
+
+We can also observe that the first two discriminant directions do a quite good job in separating the class centroids, as their associated coordinates on the respective axes are all quite different from one another. In particular, LD1 seems to "isolate" quite well the centroids associated to $0$ and $2$, whereas LD2 does the same for $4$ and $8$. Conversely, $1$, $3$ and $7$ appear to be all "clustered togheter" by the first two LDs.
+
+We can start making some speculations, that we will investigate better in the analysis below.  
+Digit *5* could be confused with *9* due to their considerable overlapping area: we could have suspected it, considering how similar their shapes are. The same goes for *8* and *0*.  
+This outcome could arise from the fact that the assumptions under which the optimal discrimination holds, as previously shown, are not fully met, as well as the fact that the proportion of trace explained by the first two LDs is not satisfactory.
 
 #### 2. Compute the confusion matrix on the training data. What are the groups more difficult to discriminate from the others? Comment in view of the answer to point 1.
 
 In order to have a better understanding of how well the first two LD variables discriminate the ten digits, we compute the confusion matrix on the training data:
 
 ```{r}
-conf.mat<-table(predicted=lda.pred$class,true=pendigits$digit)
+conf.mat <- table(predicted=lda.pred$class,true=pendigits$digit)
 conf.mat <- addmargins(conf.mat)
 conf.mat
-# n
 ```
 
 We also print the misclassifications for each digit:
 
-```{r}
-A=matrix(data=NA,nrow=10,ncol=2)
-conf.mat_2=conf.mat[-11,]
-for(i in 1:10){
-  A[i,2]=sum(conf.mat_2[-i,][,i])
-}
-A[,1]=c(0,1,2,3,4,5,6,7,8,9)
-A
+```{r, echo=FALSE}
+#A=matrix(data=NA,nrow=10,ncol=2)
+#conf.mat_2=conf.mat[-11,]
+#for(i in 1:10){
+#  A[i,2]=sum(conf.mat_2[-i,][,i])
+#}
+#A[,1]=c(0,1,2,3,4,5,6,7,8,9)
+#A
 #another way: 
 B = conf.mat[11,-11]-diag(conf.mat[-11,-11])
-B
+mis = data.frame("misclassifications"=B, "misclassification.rates"=round(B/conf.mat[11,-11],3))
+mis
 ```
 
-```{r}
+```{r, echo=FALSE}
 digits <- rownames(conf.mat)[-11]
 true_num <- conf.mat[11,1:10]
 predicted_num <- conf.mat[1:10,11]
@@ -941,17 +945,16 @@ p1 <- ggplot(predictions, aes(x = digit, y = value, fill = variable)) +
   geom_bar(stat = "identity", position = "dodge") + 
   scale_fill_manual(values = c("royalblue3", "darkorange"), 
                     labels = c("true", "predicted"), name = "count per digit")
-misclassifications <- conf.mat[11,1:10] - diag(conf.mat)[-11]
-misclassifications <- data.frame(digit = digits, mis = misclassifications)
-p2 <- ggplot(misclassifications, aes(x = digit, y = mis, group = 1)) + 
-  geom_point(size = 3) + geom_line(linewidth = 1) + 
-  ggtitle("total counts of misclassifications for each digit") + 
+#misclassifications <- conf.mat[11,1:10] - diag(conf.mat)[-11]
+misclassifications <- data.frame(digit = digits, mis=mis$misclassification.rates)
+p2 <- ggplot(misclassifications, aes(x = digit, y = mis, group = 1, label = mis)) + geom_label_repel() +
+  geom_point(size = 3) + geom_line() + 
+  ggtitle("misclassifications rates for each digit") + 
   theme(title = element_text(hjust = 0.5))
 grid.arrange(p1, p2, nrow = 2)
 ```
 
-In the confusion matrix we can see the same patterns of the scatterplot: the digit *4* is well discriminated, it has 28 misclassifications and 1116 correct classifications. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *8* and the digit *0* as *8* 77 times. We also remark that the digit *5* is the most difficult to predict with a total of *341* misclassifications, as suggested by the scatterplot. Another interesting feature that arises from the confusion matrix is how some digits are misclassified predominantly in one direction. For example the digit *1* has been misclassified as *2* $206$ times, meanwhile the digit *2* as *1* only $23$ times. The motivation under this behavior is clear in the scatterplot: due to the high variance of the digit *1* a lot of its observations gets close to the centroid of the digit *2* and so they end up being classified as $2$ by the nearest centroid classification. Instead this is not true in the opposite direction. I'M NOT SURE IT'S TRUE ANYMORE
-
+In the confusion matrix we can see similar patterns to the scatterplot: the digit *4* is well discriminated, it has only 28 misclassifications out of 1144 occurrences. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *0* as *8* 77 times. We also remark that the digit *5* has the highest misclassification rate, as suggested by the scatterplot. Another interesting feature that arises from the confusion matrix is how some digits are misclassified predominantly in one direction. For example the digit *1* has been misclassified as *2* $206$ times, meanwhile the digit *2* as *1* only $23$ times. This was already suggested by the scatterplot: due to the high variance of the digit *1* a lot of its observations are close to the centroid of the digit *2* and so they may end up being classified as $2$ by the nearest centroid classification. This clearly does not apply in the opposite direction.  
 Finally, note that the digits that are misclassified more often are also those that we found to have a class covariance matrix "more distant" from the pooled one compared to those with better misclassification rates.
 
 ### 3. Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the training error? Why so?
@@ -962,34 +965,33 @@ As requested, we proceed with the leave-one-out cross validations:
 lda.fitCV<-lda(digit~.,data=pendigits, CV=TRUE)
 ```
 
-And we compute the corresponding confusion matrix and error:
+And we compute the corresponding confusion matrix.
 
 ```{r}
 conf.mat<-table(predicted=lda.fitCV$class,true=pendigits$digit)
 addmargins(conf.mat)
-CV.err<-1-mean(lda.fitCV$class==pendigits$digit)
-CV.err
 ```
 
-We compute also the training error of LDA used on all the data without CV, to make a comparison:
+We compare the training error of LDA without CV, with the one achieved via leave-one-out cross validation:
 
 ```{r}
 training.err<-1-mean(lda.pred$class==pendigits$digit)
-training.err
+CV.err<-1-mean(lda.fitCV$class==pendigits$digit)
+data.frame("training error"=training.err, "CV error" = CV.err)
 ```
 
-As we can see, the test error rate achieved via leave-one-out cross validation turns out to be bigger than the training error. This is to be expected: the training error is a very optimistic estimate of the actual error rates, because it relies for testing on the same data used to train it (so it suffers a form of "overfitting" to the data). The leave-one-out CV procedure instead tests models, trained on all data minus a single observation, on that observation and averages the error rates obtained by repeating this procedure on each observation, so it is a slightly more realistic measure of how well the model would fare with unseen data (and thus tends to give a less-optimistic approximation of the AER).\
-Still, the difference of the rates is not very appreciable. This might have to with the fact that leaving a single handwritten digit out has only a marginal impact on the predicition capability of said digit when the model is trained on (around) 249 other digits from the same writer - plus the ones of all other 33 authors.
+As we can see, the test error rate achieved via leave-one-out cross validation turns out to be bigger than the training error. This is to be expected: the training error is a very over-confident estimate of the Actual Error Rates, because it tests its performance on the same data used to train it (so it suffers a form of "overfitting" to the data). The leave-one-out CV procedure instead tests models, trained on all data minus a single observation, on that observation and averages the error rates obtained by repeating this procedure on each observation. It is a slightly more realistic measure of how well the model would fare with unseen data (and thus tends to give a less-optimistic approximation of the AER).\
+Still, the difference of the rates is not very appreciable. This might have to do with the fact that leaving a single handwritten digit out has only a marginal impact on the predictive capability of that digit as the model is trained on (around) 249 other digits from the same writer - plus the ones of all other 33 authors.
 
 #### 4. Compute the $44$-fold cross validation error for each reduced-rank LDA classifier, including full-rank LDA, by using the partition of the observation provided by the variable `groupCV` below. Plot the error curve against the number of discriminant variables. What classifier do you prefer? Comment.
 
-```{r}
+```{r, echo=FALSE}
 groupCV<-rep(1:44, each=250)
 groupCV<-groupCV[1:length(pendigits$digit)]
 ```
 
-Let's start by observing that $44$ is also the number of different writers who contributed to writing the digits for the training data. If we were under the assumption that the observations are grouped in order of their "author", this $44$-fold cross validation could turn out to be a very effective way of measuring the predictive capability of our model: we would effectively test how well observation from an "unseen" (as in: left out from the training) writer are classified based on the training data of the remaining $43$. However, given the information available on the data-set we cannot be sure that this is the case.\
-In the following section we will use two different $44$-fold cross validation error estimates: one that takes a simple average of the error rates over all folds, and one that takes an average weighted on the amount of test data of said folds, to account for the fact that the last group of test data is slightly smaller than the others. Notice that the latter simply amounts to dividing the total number of misclassifications over all the folds and dividing it by the size of the dataset. IS IT TRUE? Since the difference in size of the last fold is of only $8$ observations out of $250$ we do not expect a sensible difference.
+Let's start by observing that $44$ is also the number of different writers who contributed to writing the digits for the training data. If we were under the assumption that the observations were grouped in order of their "author", this $44$-fold cross validation could turn out to be a very effective way of measuring the predictive capability of our model: we would effectively test how well observation from an "unseen" (as in: left out from the training) writer are classified based on the training data of the remaining $43$. However, given the information available on the data-set, we cannot be sure that this is the case.\
+In the following section we will use two different $44$-fold cross validation error estimates: one that takes a simple average of the error rates over all folds, and one that takes an average of those fold-related error rates weighted on the amount of test data of said folds, to account for the fact that the last group of test data is slightly smaller than the others. The latter is, in essence, the total misclassification rate of the model: it simply amounts to dividing the total number of misclassifications over all the folds and dividing it by the size of the dataset. Since the difference in size of the last fold is of only $8$ observations out of $250$ we do not expect a sensible difference.
 
 ```{r}
 k_f=44
@@ -1016,44 +1018,14 @@ for (i in 1:k_f) {
   }
 }
 error44=colMeans(err)
-error44_w=mis/n
+mis_rate44=mis/n
 
-tibble("rank"=1:9, "arithmetic error"=error44, "weighted error"=error44_w)
+tibble("rank"=1:9, "arithmetic mean of errors"=error44, "misclassification rate"=mis_rate44)
 ```
 
 As expected, the differences are hardly noticeable.
 
----------- TO BE REMOVED; WHY DIFFERENT? As for the weighted mean:
-
-```{r}
-k_f=44
-# Initialize error rates vector
-err=matrix( rep(0, k_f*min(k-1,p)), nrow=k_f )
-l=rep(0,k-1)
-#Loop over folds
-for (i in 1:k_f) {
-  # Define test and train sets
-  test=(groupCV == i)
-  train=!test
-  
-  # Fit LDA model on training data
-  lda.fit = lda(digit~.,data=pendigits[train,])
-  
-  for(j in 1:min(k-1,p)){
-    # Predict test data using LDA model
-    lda.pred = predict(lda.fit, pendigits[test,], dimen = j)$class
-    l[j]=length(lda.pred)
-    # Compute error rates
-    err[i,j] = 1 - sum(lda.pred == pendigits$digit[test])/l[j]
-  }
-}
-error44_b= apply(err*l,2,FUN=sum) /n
-rbind(error44,error44_b) #error 44 b seems actually better...
-```
-
-------------------------------------------------------------------------
-
-```{r, fig.height=10}
+```{r, fig.height=10, echo=FALSE}
 dataf=data.frame("rank" = as.character(9:1), "arithmetic_mean" = error44[9:1], "weighted_mean" = error44_w[9:1])
 dataf <- melt(dataf)
 
@@ -1063,9 +1035,12 @@ ggplot(dataf, aes(x=rank, y=value, label = as.character(round(value, 4)), color 
   scale_color_manual(values = c("darkorange", "royalblue3"))
 ```
 
+We can see that the cross validation error keeps improving as the number of dimensions grows, which suggests that all linear discriminant directions matter for classification purposes - albeit to different extents. We could make a case for keeping only 6 dimensions if we focused on dimensionality reduction, following a sort of "elbow rule". 
+Overall, the most balanced decision is to keep all 9 dimensions.
+
 #### 5. $(optional)$ Find a classification rule that improves on the CV error rate estimates found before. Feel free to use any classification method, even on not covered in class.
 
-Since the assumption of equal covariance matrix across classes seems stretched, out first thought was simply to try Quadratic Discriminant Analysis, which doesn't require it. Note that we wouldn't expect a huge improvement, since it would still rely on the assumption of Gaussian conditional densities.
+Since the assumption of equal covariance matrix across classes seems stretched, our first thought is simply to try Quadratic Discriminant Analysis, which doesn't require it. Note that we wouldn't expect a huge improvement, since it would still rely on the assumption of Gaussian conditional densities.
 
 QDA is, however, impossible to implement in this case. Indeed, QDA requires the inversion of all the covariance matrices in its procedure, not only of the pooled one, and digit 4 doesn't have a full rank covariance matrix (as previously discussed).
 
@@ -1075,17 +1050,15 @@ qda.err<-1-mean(lda.fitCV$class==pendigits$digit)
 qda.err
 ```
 
-Before switching to another framework, we could try and implemement a similar procedure that ignores the problem of the singularity of the covariance matrix of digit $4$: Regularized Discriminant Analysis. This technique is in between LDA and QDA, as it relies on class covariance matrix estimates that are given by a linear combination of the pooled covariance matrix and of each class sample covariance matrix. The coefficients of the combinations are estimated as to minimize the error rates by default. Quite unexpectedly, the improvements achieved via a 44-fold Cross Validation RDA on the LDA error rates are astounding - where we used again a 44-fold cross validation technique to make error estimates more comparable.
+Before switching to another framework, we could try and implement a similar procedure that ignores the problem of the singularity of the covariance matrix of digit $4$: Regularized Discriminant Analysis. This technique is in between LDA and QDA, in the sense that it relies on class covariance matrix estimates that are given by a linear combination of the pooled covariance matrix and of the sample covariance matrix of the considered class. The coefficients of the combinations are estimated as to minimize the error rates by default. Quite unexpectedly, the improvements achieved via a 44-fold Cross Validation RDA on the LDA error rates are astounding - where we used again a 44-fold cross validation technique to make error estimates more comparable with the previous ones.
 
 ```{r}
 rda.fit=rda(digit~.,data=pendigits, crossval=TRUE, fold=44)
 rda.fit$error.rate
 ```
+Here "APER" (apparent error rate) corresponds to what we called "total misclassification rates" above, and "crossval" is the cross validation error. The errors are almost reduced by a $\frac{1}{10}$ factor compared to LDA.
 
-Which are around $frac{1}{10}$ of the previous ones.
-
-Since relying less on the assumptions of LDA provides us an improved outcome, the next technique we implement is multinomial logistic regression (a generalisation of the standard binomial logistic regression for categorical variables with more than 2 possible outcomes). Indeed, the strategy is almost identical to the one of LDA (maximization of the discriminant functions), but it relies on the weaker assumptions of logistic regression (the log-odds of each class is assumed to be a linear combination of the explanatory variables).
-We repeat k-fold CV on this model using the same criterion above.
+Since relying less on the assumptions of LDA provides us an improved outcome, the next technique we implement is Multinomial Logistic Regression (a generalisation of the standard Binomial Logistic Regression for categorical variables with more than 2 possible outcomes). Indeed, the strategy is almost identical to the one of LDA (maximization of the discriminant functions), but it relies on the weaker assumptions of logistic regression (the log-odds of each class is assumed to be a linear combination of the explanatory variables). We repeat k-fold CV on this model using the same criterion above.
 
 ```{r, include=FALSE}
 mlog.err=0
@@ -1101,22 +1074,18 @@ for(i in 1:k_f){
   mlog.mis=mlog.mis+sum(!train)-sum(pred.classes == test.data$digit) #number of misclassifications as the total number of test data - the correctly predicted class
 }
 mlog.err=mlog.err/k_f #error by means of the errors
-mlog.err 
 
 mlog.mis=mlog.mis/n
-mlog.mis 
 
 ```
 
 ```{r}
-print("Arithmetic average of errors: ",mlog.mis)
-print("Misclassification rate: ",mlog.err)
-
+data.frame("Arithmetic average of errors"=mlog.err, "Misclassification rate"= mlog.mis)
 ```
-The results are good, but not as good as those of RDA. Furthermore, the function used to implement this multinomial logistic regression relies on a random choice of initial parameters and the outcome is sensitive to the choice of these initial values (we found that for other seeds the error rates can get really close to those of LDA).
 
-At last, we attempt to use a random forest (with sample sizes as suggested in *The Elements of Statistical Learning*, default), a popular classification method that performs very well on many tasks. Usually the great advantage of random forests is the interpretability of the model, which in this is quite secondary, but it's still worth checking if the errors improve:
-*Idea:* forest of classification trees applied to sampled subsets of the training data (with repetition allowed) but with further limitations on the features each tree consider to classify (to guarantee less correlation within the outcomes). Majority vote for the final outcome is used.
+The results are good, but not as good as those of RDA. Furthermore, the function used to implement this Multinomial Logistic Regression relies on a random choice of initial parameters and the outcome is sensitive to the choice of these initial values.
+
+At last, we attempt to use a random forest, a popular classification method that performs very well on many classification tasks. Usually the great advantage of random forests is the interpretability of the model, which in this case is quite secondary, but it's still worth checking if the errors improve: 
 
 ```{r}
 rfor.err=0
@@ -1128,17 +1097,15 @@ for(i in 1:k_f){
   train.data$digit=as.factor(train.data$digit)
   test.data=pendigits[!train,]
   test.data$digit=as.factor(test.data$digit)
-#  rfor.model = randomForest(digit ~., data = train.data, ntree=100, mtry=sqrt(p))
   rfor.model = randomForest(digit ~., data = train.data, ntree=100)
   pred.classes = predict(rfor.model, test.data)
   rfor.err=rfor.err+mean(pred.classes != test.data$digit)
-  rfor.mis=rfor.mis+sum(pred.classes != test.data$digit) #number of misclassifications as the total number of test data minus the correctly predicted class
+  rfor.mis=rfor.mis+sum(pred.classes != test.data$digit) 
 }
-rfor.err=rfor.err/k_f #error by means of the errors
-print("Arithmetic average of errors: ",rfor.err) 
-
+rfor.err=rfor.err/k_f #error as means of the errors
 rfor.mis=rfor.mis/n
-print("Misclassification rate: ",rfor.mis) 
+
+data.frame("Arithmetic average of errors" = rfor.err, "Misclassification rate" = rfor.mis) 
 ```
 
 Random forests perform better than all previously considered methods.
