@@ -1,5 +1,6 @@
 ---
-title: "ProblemSet2"
+title: "Problem Set 2"
+author: Valerio Palagi, Lucia Pezzetti, Federico Testa
 format: pdf
 editor: visual
 ---
@@ -40,15 +41,10 @@ library(randomForest)
 
 We consider the dataset `psych` which contains 24 cognitive tests administered to 301 students (with ages ranging from 11 to 16) in a suburb of Chicago: a group of 156 students (74 boys, 82 girls) from the Pasteur School and a group of 145 students (72 boys, 73 girls) from the Grant-White School.
 
-```{r}
-## psych data
-
-#setwd("c:/Users/lucia/OneDrive/Desktop/Documenti/Stochastics and Data Science/Multivariate Statistical Analysis/PS2/problemset_2/problemset_2")
-
+```{r, echo=FALSE}
 psych<-read.table("data/psych.txt",header=T)
-dim(psych)
+#dim(psych)
 head(psych)
-
 with(psych,table(group))
 ```
 
@@ -69,18 +65,18 @@ Grant_White <- psych %>% dplyr::filter(group == "GRANT") %>% dplyr::select(-c(Ca
 
 The aim of the Factor Analysis is, in essence, to describe - if possible - the covariance relationships among many variables in terms of a few underlying but unobservable random variables, called factors. Loosely speaking the idea is the following: suppose that the considered variables can be grouped according to their correlation pattern - i.e. that we can cluster the variables in such a way to have high intra-groups correlations and small inter-groups correlations. It seems reasonable to believe that each group of variables may be linked to a single underlying and unobservable factor, which ultimately is responsible for the observed significant intra-group correlations.
 
-Looking at the psych data set it is conceivable that the results of the "ability" tests performed are just different measures of fewer broad domains like for example verbal or spatial abilities, memory or mathematical deduction.
+Looking at the `psych` data set it is conceivable that the results of the "ability" tests performed are just different measures of fewer broad domains like for example verbal or spatial abilities, memory or mathematical deduction.
 
 We start our analysis by considering the correlation matrix:
 
-```{r}
+```{r, echo=FALSE}
 R <- cor(Grant_White)
 #testRes = cor.mtest(Grant_White, conf.level = 0.95)
 ```
 
 It is helpful to plot it:
 
-```{r, fig.width = 13, fig.height = 13}
+```{r, fig.width = 13, fig.height = 13, echo=FALSE}
 corrplot(R, method = 'color', type = 'lower', insig='blank',
          addCoef.col ='black', number.cex = 0.8, diag=FALSE, col = COL2('RdBu', n = 200))
 ```
@@ -105,7 +101,7 @@ In particular, we are asked to perform a Factor Analysis with $m=5$ and $m=6$ co
 
 To do so we plot the chi-square qq-plot of the squared Mahalanobis distances: under the assumption of multivariate normality, the data will fall along the bisector.
 
-```{r, include = FALSE}
+```{r, echo=FALSE}
 x.bar <- colMeans(Grant_White)
 S <- cov(Grant_White)
 
@@ -140,9 +136,9 @@ ggplot(as.data.frame(d), aes(x = x, y = d, label = labels)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-As we can immediately see from the plot, observations 12 and 24 are multivariate ouliers: It is then customary to temporarily remove them and study again the multivariate normality of the dataset.
+As we can immediately see from the plot, observations 12 and 24 are multivariate ouliers: it is then customary to temporarily remove them and study again the multivariate normality of the dataset.
 
-```{r}
+```{r, echo=FALSE}
 without_outliers <- Grant_White[-c(12,24),]
 x.bar <- colMeans(without_outliers)
 S <- cov(without_outliers)
@@ -234,7 +230,7 @@ Now, in a real-life study, there are several things we can do to try improve the
 -   using different methods to perform the factor analysis - for example a possibility is to use the principal component approach;
 -   finally,we may consider alternative analyses - such as principal component analysis, cluster analysis, or discriminant analysis.
 
-We will not try neither of these improvement, but - for the sake of the exercise - we will proceed in the factor analysis taking this issue into account.
+We will not try any of these improvement, but - for the sake of the exercise - we will proceed in the factor analysis taking this issue into account.
 
 Other relevant features to examine are the specific variances, or uniquenesses. The $i^{th}$ uniqueness represents the proportion of variance of the $i^{th}$ variable that is not accounted for by the factors. In other words, the specific variances are important because they provide information about the unique contribution of each observed variable to the total variance. Variables with large specific variances are those that are not well accounted for by the underlying factors. These variables are also more likely to have weaker factor loadings and may be more difficult to interpret. On the other hand, variables with small specific variances are those that are well explained by the factors and are more likely to have stronger factor loadings.
 
@@ -288,7 +284,8 @@ As we can observe, the variables that are mainly affected by the introduction of
 
 It is also worth noticing that the number of variables for which the uniquenesses are significantly reduced by the introduction of the sixth factor is only two. This may suggest that the model with 6 factors may fail in providing a relevant improvement with respect to the one with 5 factors.
 
-We can now assess the approximation of the correlation matrix. To do so we can compute the residual matrix $$
+We can now assess the approximation of the correlation matrix. To do so we can compute the residual matrix 
+$$
 \begin{aligned}
   \mathbf{R} - \hat{\mathbf{L}}\hat{\mathbf{L}}^T - \hat{\mathbf{\Psi}}
 \end{aligned}
@@ -315,7 +312,7 @@ The obtained norms - for the choice of 5 and 6 factors - are in both cases quite
 
 Overall, the comparison seems to suggests that neither the 5 factors model nor the 6 factors one are good fit for the data. Anyway, if we stick to the problem of deciding how many factors to retain, the choice of 5 common factors may appear to be the most preferable one. Indeed, as it emerges from all the comment above, the improvements related to the use of six factors are not sufficiently noteworthy.
 
-### 2. Give an interpretation to the common factors in the m = 5 solution with varimax rotation
+### 2. Give an interpretation to the common factors in the $m = 5$ solution with varimax rotation
 
 To give an easier interpretation of the factors, we can perform a varimax rotation. The varimax technique seeks the rotated loadings $\mathbf{L}^*$ that maximize the variance of the squared loadings for each factor. Loosely speaking, this maximization has the effect of "spreading out" the squares of the loadings on each factor as much as possible. In other words, the varimax rotation technique attempts to make the loadings either small or large to facilitate interpretation. Therefore performing a varimax rotation aims to find groups of large and the negligible in each column of the rotated loadings matrix $\mathbf{L}^*$.
 
@@ -442,21 +439,27 @@ As we can see, `V2` may properly be associated with the second group, indeed its
 
 For what concerns the variable `V11`, we can notice that its three highest loadings - corresponding to factors 3, 4 and 5 - are all very similar. This may be reasonable, indeed to score high in a code test it in necessary not only to have good "matching" capacities (factor 4), but also some mathematical-problem solving skills (factor 3) and the ability to recognize quickly the elements to code (factor 5).
 
-Similarly, for variable `V22` we cannot ignore the loading associated to factor 1, besides the higher one being the one of factor 2. Also in this case, we may interpret this result by saying that "problem reasoning" abilities are quite trasversal skills and are surely also related to the verbal sphere.
+Similarly, for variable `V22` we cannot ignore the loading associated to factor 1, besides the higher one being the one of factor 2. Also in this case, we may interpret this result by saying that "problem reasoning" abilities are quite transversal skills and are surely also related to the verbal sphere.
 
-### 3. Make a scatterplot of the first two factor scores for the m = 5 solution obtained by the regression method. Is their correlation equal to zero? Should we expect so? Comment.
+### 3. Make a scatterplot of the first two factor scores for the $m = 5$ solution obtained by the regression method. Is their correlation equal to zero? Should we expect so? Comment.
 
 First of all we make some theoretical observations on the factor scores.
 
 The factor scores are the estimated values of the underlying common factors. In particular, they are estimates of the unobserved vector $f_i = (f_{i1}, \dots, f_{im})$ - in place of which we have only observed the variables realizations $x_i = (x_{i1}, \dots, x_{im})$. The estimation, however, is not straightforward, as the total number of unobserved quantities - given not only by the $f_i$, but also by the error terms $\epsilon_i$ - outnumbers the observed $x_i$.
 
-One of the most used approaches advanced to overcome this problem is the *regression method*. The idea is the following: consider the baseline equation of the factor model $$
+One of the most used approaches advanced to overcome this problem is the *regression method*. The idea is the following: consider the baseline equation of the factor model 
+$$
   X - \mu = \mathbf{L}F + \epsilon
-$$ where we suppose that both the factors and the errors are jointly normally distributed and that both the common factors and the errors are uncorrelated within each other. Under these assumption we know that the conditional distribution of $F|X$ is again Gaussian, with conditional mean given by $$
+$$
+where we suppose that both the factors and the errors are jointly normally distributed and that both the common factors and the errors are uncorrelated within each other. Under these assumption we know that the conditional distribution of $F|X$ is again Gaussian, with conditional mean given by 
+$$
  \mathbb{L}^T\mathbf{\Sigma}^{-1}(X-\mu) = \mathbf{L}^T(\mathbf{LL}^T -\mathbf{\Psi})^{-1}(X-\mu)
-$$ Given so, a natural estimate for $f_i$ is simply the corresponding estimate of this conditional mean: $$
+$$
+Given so, a natural estimate for $f_i$ is simply the corresponding estimate of this conditional mean: 
+$$
 \hat{f_i} = \hat{\mathbf{L}}^T\mathbf{S}^{-1}(x_i-\bar{x})
-$$ where we use $\mathbf{S}$ in place of its estimation in order to try to reduce the effects of possible mistakes in determining the number of factors.
+$$
+where we use $\mathbf{S}$ in place of its estimation in order to try to reduce the effects of possible mistakes in determining the number of factors.
 
 Given so, since we assume that the common factors are uncorrelated - $cov(F_i, F_j) = 0, \quad \forall i\neq j$ - we will get - or at least we would like to get - uncorrelated factor scores.
 
@@ -541,7 +544,7 @@ pl_sc_GW
 
 As expected, the desired assumption of normality appears to hold.
 
-### 4. Obtain the maximum likelihood solution with varimax rotation for m = 5 factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant--White students?
+### 4. Obtain the maximum likelihood solution with varimax rotation for $m = 5$ factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant--White students?
 
 As requested we now compute the maximum likelihood solution with 5 factors using the data on the students attending the Pasteur school. As before we only consider the variables related to the 24 attitudinal tests.
 
@@ -557,7 +560,7 @@ p <- ncol(Pasteur)
 R_past <- cor(Pasteur)
 ```
 
-```{r, fig.width = 13, fig.height = 13}
+```{r, fig.width = 13, fig.height = 13, echo=FALSE}
 corrplot(R_past, method = 'color', type = 'lower', insig='blank',
          addCoef.col ='black', number.cex = 0.8, diag=FALSE, col = COL2('RdBu', n = 200))
 ```
@@ -714,7 +717,7 @@ psych.5fa.ml <- factanal(x=Pasteur, factors = m[1], rotation = "varimax", scores
 scores_Past <- psych.5fa.ml$scores
 ```
 
-We then plot the first two scores. As already justified above we expect to see almost no correlation within the two scores and normally distributed data with a zero vector mean and an identitu covariance matrix. Therefore we look for contour plots with an approximately circular shape and centered in the origin of the axes.
+We then plot the first two scores. As already justified above we expect to see almost no correlation within the two scores and normally distributed data with a zero vector mean and an identity covariance matrix. Therefore we look for contour plots with an approximately circular shape and centered in the origin of the axes.
 
 ```{r, echo=FALSE}
 data.frame("correlation" = cor(scores_Past[,1], scores_Past[,2]))
@@ -776,6 +779,7 @@ From the previous point we have obtained the the first two factors for each scho
 ## Exercise 2
 
 For exercise 2 we are going to consider the following dataset `pendigits`:
+
 ```{r, echo=FALSE}
 rm(list=ls())
 pendigits<-read.table("data/pendigits.txt", sep=",",head=F)
@@ -900,13 +904,13 @@ pl <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) +
 pl
 ```
 
-An analysis of the considered scatterplot should therefore give an idea of the overall behavior of the classifier. However, since the proportion of trace of the first two LDs is just around $0.6$, we do not expect the information provided by the plot to be entirely accurate for a full rank LDA.  
+An analysis of the considered scatterplot should therefore give an idea of the overall behavior of the classifier. However, since the proportion of trace of the first two LDs is just around $0.6$, we do not expect the information provided by the plot to be entirely accurate for a full rank LDA.\
 In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top, and so does *2* at the left. Meanwhile the other digits have clouds with some values far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be digit *5*, which appears to have somewhat of a "bi-modal projected distribution", with points concentrated in two separated regions. Digits *0* and *8* show some overlap with the neighboring ones, and *1* even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances in the LD1-LD2 plane.
 
 We can also observe that the first two discriminant directions do a quite good job in separating the class centroids, as their associated coordinates on the respective axes are all quite different from one another. In particular, LD1 seems to "isolate" quite well the centroids associated to $0$ and $2$, whereas LD2 does the same for $4$ and $8$. Conversely, $1$, $3$ and $7$ appear to be all "clustered togheter" by the first two LDs.
 
-We can start making some speculations, that we will investigate better in the analysis below.  
-Digit *5* could be confused with *9* due to their considerable overlapping area: we could have suspected it, considering how similar their shapes are. The same goes for *8* and *0*.  
+We can start making some speculations, that we will investigate better in the analysis below.\
+Digit *5* could be confused with *9* due to their considerable overlapping area: we could have suspected it, considering how similar their shapes are. The same goes for *8* and *0*.\
 This outcome could arise from the fact that the assumptions under which the optimal discrimination holds, as previously shown, are not fully met, as well as the fact that the proportion of trace explained by the first two LDs is not satisfactory.
 
 #### 2. Compute the confusion matrix on the training data. What are the groups more difficult to discriminate from the others? Comment in view of the answer to point 1.
@@ -954,7 +958,7 @@ p2 <- ggplot(misclassifications, aes(x = digit, y = mis, group = 1, label = mis)
 grid.arrange(p1, p2, nrow = 2)
 ```
 
-In the confusion matrix we can see similar patterns to the scatterplot: the digit *4* is well discriminated, it has only 28 misclassifications out of 1144 occurrences. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *0* as *8* 77 times. We also remark that the digit *5* has the highest misclassification rate, as suggested by the scatterplot. Another interesting feature that arises from the confusion matrix is how some digits are misclassified predominantly in one direction. For example the digit *1* has been misclassified as *2* $206$ times, meanwhile the digit *2* as *1* only $23$ times. This was already suggested by the scatterplot: due to the high variance of the digit *1* a lot of its observations are close to the centroid of the digit *2* and so they may end up being classified as $2$ by the nearest centroid classification. This clearly does not apply in the opposite direction.  
+In the confusion matrix we can see similar patterns to the scatterplot: the digit *4* is well discriminated, it has only 28 misclassifications out of 1144 occurrences. It is interesting to note that, as previously speculated, the digit *5* has been wrongly predicted as *9* 268 times and the digit *0* as *8* 77 times. We also remark that the digit *5* has the highest misclassification rate, as suggested by the scatterplot. Another interesting feature that arises from the confusion matrix is how some digits are misclassified predominantly in one direction. For example the digit *1* has been misclassified as *2* $206$ times, meanwhile the digit *2* as *1* only $23$ times. This was already suggested by the scatterplot: due to the high variance of the digit *1* a lot of its observations are close to the centroid of the digit *2* and so they may end up being classified as $2$ by the nearest centroid classification. This clearly does not apply in the opposite direction.\
 Finally, note that the digits that are misclassified more often are also those that we found to have a class covariance matrix "more distant" from the pooled one compared to those with better misclassification rates.
 
 ### 3. Use the leave-one-out cross validation (CV). Compute the confusion matrix and the corresponding CV errors. Is it larger than the training error? Why so?
@@ -1026,7 +1030,7 @@ tibble("rank"=1:9, "arithmetic mean of errors"=error44, "misclassification rate"
 As expected, the differences are hardly noticeable.
 
 ```{r, fig.height=10, echo=FALSE}
-dataf=data.frame("rank" = as.character(9:1), "arithmetic_mean" = error44[9:1], "weighted_mean" = error44_w[9:1])
+dataf=data.frame("rank" = as.character(9:1), "arithmetic_mean" = error44[9:1], "weighted_mean" = mis_rate44[9:1])
 dataf <- melt(dataf)
 
 ggplot(dataf, aes(x=rank, y=value, label = as.character(round(value, 4)), color = variable, group = variable, shape = variable)) + geom_point(size = 3) + 
@@ -1035,8 +1039,7 @@ ggplot(dataf, aes(x=rank, y=value, label = as.character(round(value, 4)), color 
   scale_color_manual(values = c("darkorange", "royalblue3"))
 ```
 
-We can see that the cross validation error keeps improving as the number of dimensions grows, which suggests that all linear discriminant directions matter for classification purposes - albeit to different extents. We could make a case for keeping only 6 dimensions if we focused on dimensionality reduction, following a sort of "elbow rule". 
-Overall, the most balanced decision is to keep all 9 dimensions.
+We can see that the cross validation error keeps improving as the number of dimensions grows, which suggests that all linear discriminant directions matter for classification purposes - albeit to different extents. We could make a case for keeping only 6 dimensions if we focused on dimensionality reduction, following a sort of "elbow rule". Overall, the most balanced decision is to keep all 9 dimensions.
 
 #### 5. $(optional)$ Find a classification rule that improves on the CV error rate estimates found before. Feel free to use any classification method, even on not covered in class.
 
@@ -1044,10 +1047,8 @@ Since the assumption of equal covariance matrix across classes seems stretched, 
 
 QDA is, however, impossible to implement in this case. Indeed, QDA requires the inversion of all the covariance matrices in its procedure, not only of the pooled one, and digit 4 doesn't have a full rank covariance matrix (as previously discussed).
 
-```{r, error=FALSE}
+```{r, error=TRUE}
 qda.fit=qda(digit~.,data=pendigits, CV=TRUE)
-qda.err<-1-mean(lda.fitCV$class==pendigits$digit)
-qda.err
 ```
 
 Before switching to another framework, we could try and implement a similar procedure that ignores the problem of the singularity of the covariance matrix of digit $4$: Regularized Discriminant Analysis. This technique is in between LDA and QDA, in the sense that it relies on class covariance matrix estimates that are given by a linear combination of the pooled covariance matrix and of the sample covariance matrix of the considered class. The coefficients of the combinations are estimated as to minimize the error rates by default. Quite unexpectedly, the improvements achieved via a 44-fold Cross Validation RDA on the LDA error rates are astounding - where we used again a 44-fold cross validation technique to make error estimates more comparable with the previous ones.
@@ -1056,6 +1057,7 @@ Before switching to another framework, we could try and implement a similar proc
 rda.fit=rda(digit~.,data=pendigits, crossval=TRUE, fold=44)
 rda.fit$error.rate
 ```
+
 Here "APER" (apparent error rate) corresponds to what we called "total misclassification rates" above, and "crossval" is the cross validation error. The errors are almost reduced by a $\frac{1}{10}$ factor compared to LDA.
 
 Since relying less on the assumptions of LDA provides us an improved outcome, the next technique we implement is Multinomial Logistic Regression (a generalisation of the standard Binomial Logistic Regression for categorical variables with more than 2 possible outcomes). Indeed, the strategy is almost identical to the one of LDA (maximization of the discriminant functions), but it relies on the weaker assumptions of logistic regression (the log-odds of each class is assumed to be a linear combination of the explanatory variables). We repeat k-fold CV on this model using the same criterion above.
@@ -1085,7 +1087,7 @@ data.frame("Arithmetic average of errors"=mlog.err, "Misclassification rate"= ml
 
 The results are good, but not as good as those of RDA. Furthermore, the function used to implement this Multinomial Logistic Regression relies on a random choice of initial parameters and the outcome is sensitive to the choice of these initial values.
 
-At last, we attempt to use a random forest, a popular classification method that performs very well on many classification tasks. Usually the great advantage of random forests is the interpretability of the model, which in this case is quite secondary, but it's still worth checking if the errors improve: 
+At last, we attempt to use a random forest, a popular classification method that performs very well on many classification tasks. Usually the great advantage of random forests is the interpretability of the model, which in this case is quite secondary, but it's still worth checking if the errors improve:
 
 ```{r}
 rfor.err=0
@@ -1109,3 +1111,30 @@ data.frame("Arithmetic average of errors" = rfor.err, "Misclassification rate" =
 ```
 
 Random forests perform better than all previously considered methods.
+
+At last, we mention that we also tried to use the more "naive" method of the k-Nearest Neighbors, which yielded surprisingly good results for small values of k. We show the error rates for k from $1$ to $10$, but up to $100$ they only increased along with k, so the optimal choice appear to be either $1$ or $3$. This behavior is quite unexpected: the error rate is usually an increasing function of k when computed on training data, yet it still happens the same despite testing the model on test data - not used for training - via cross-validation.  
+In terms of raw error rates, k-NN should be our best choice. However, due to its instability, we should probably opt for Random Forests regardless.
+
+```{r}
+set.seed(1)
+knn.err=numeric(10)
+knn.mis=numeric(10)
+for(aux in 1:10){
+  knn.err_tmp=0
+  knn.mis_tmp=0
+  for(i in 1:k_f){
+    train = !(groupCV==i)
+    train.data=pendigits[train,]
+    train.data$digit=as.factor(train.data$digit)
+    test.data=pendigits[!train,]
+    test.data$digit=as.factor(test.data$digit)
+    knn.pred = class::knn(train=train.data[,1:16], cl=train.data[,17], test=test.data[,1:16], k=aux)
+    knn.err_tmp=knn.err_tmp+mean(knn.pred != test.data$digit)
+    knn.mis_tmp=knn.mis_tmp+sum(knn.pred != test.data$digit) 
+  }
+  knn.err[aux]=knn.err_tmp/k_f
+  knn.mis[aux]=knn.mis_tmp/n
+}
+
+data.frame("k"=1:aux, "Arithmetic average of errors" = knn.err, "Misclassification rate" = knn.mis) 
+```
