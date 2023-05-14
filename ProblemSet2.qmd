@@ -33,6 +33,7 @@ library(matrixcalc)
 library(caret)
 library(nnet)
 library(klaR)
+library(randomForest)
 ```
 
 ## Exercise 1
@@ -927,6 +928,7 @@ A[,1]=c(0,1,2,3,4,5,6,7,8,9)
 A
 #another way: 
 B = conf.mat[11,-11]-diag(conf.mat[-11,-11])
+B
 ```
 
 ```{r}
@@ -1016,7 +1018,7 @@ for (i in 1:k_f) {
 error44=colMeans(err)
 error44_w=mis/n
 
-tibble("rank"=1:9, "simple error"=error44, "weighted error"=error44_w)
+tibble("rank"=1:9, "arithmetic error"=error44, "weighted error"=error44_w)
 ```
 
 As expected, the differences are hardly noticeable.
@@ -1080,6 +1082,63 @@ rda.fit=rda(digit~.,data=pendigits, crossval=TRUE, fold=44)
 rda.fit$error.rate
 ```
 
-Which have decresed by a factor of $\frac{1}{10}$ compared to the LDA ones. MAYBE IT'S BETTER TO IMPLEMENT IT BY HAND TO SHOW IT'S THE SAME PROCEDURE?
+Which are around $frac{1}{10}$ of the previous ones.
 
-MISSING: LOGISTIC REGRESSION, RANDOM FOREST
+Since relying less on the assumptions of LDA provides us an improved outcome, the next technique we implement is multinomial logistic regression (a generalisation of the standard binomial logistic regression for categorical variables with more than 2 possible outcomes). Indeed, the strategy is almost identical to the one of LDA (maximization of the discriminant functions), but it relies on the weaker assumptions of logistic regression (the log-odds of each class is assumed to be a linear combination of the explanatory variables).
+We repeat k-fold CV on this model using the same criterion above.
+
+```{r, include=FALSE}
+mlog.err=0
+mlog.mis=0
+for(i in 1:k_f){
+  set.seed(i) #random initial parameters, different for each cycle
+  train = !(groupCV==i)
+  train.data=pendigits[train,]
+  test.data=pendigits[!train,]
+  mlog.model = nnet::multinom(digit ~., data = train.data)
+  pred.classes = mlog.model %>% predict(test.data)
+  mlog.err=mlog.err+1-mean(pred.classes == test.data$digit)
+  mlog.mis=mlog.mis+sum(!train)-sum(pred.classes == test.data$digit) #number of misclassifications as the total number of test data - the correctly predicted class
+}
+mlog.err=mlog.err/k_f #error by means of the errors
+mlog.err 
+
+mlog.mis=mlog.mis/n
+mlog.mis 
+
+```
+
+```{r}
+print("Arithmetic average of errors: ",mlog.mis)
+print("Misclassification rate: ",mlog.err)
+
+```
+The results are good, but not as good as those of RDA. Furthermore, the function used to implement this multinomial logistic regression relies on a random choice of initial parameters and the outcome is sensitive to the choice of these initial values (we found that for other seeds the error rates can get really close to those of LDA).
+
+At last, we attempt to use a random forest (with sample sizes as suggested in *The Elements of Statistical Learning*, default), a popular classification method that performs very well on many tasks. Usually the great advantage of random forests is the interpretability of the model, which in this is quite secondary, but it's still worth checking if the errors improve:
+*Idea:* forest of classification trees applied to sampled subsets of the training data (with repetition allowed) but with further limitations on the features each tree consider to classify (to guarantee less correlation within the outcomes). Majority vote for the final outcome is used.
+
+```{r}
+rfor.err=0
+rfor.mis=0
+for(i in 1:k_f){
+  set.seed(i)
+  train = !(groupCV==i)
+  train.data=pendigits[train,]
+  train.data$digit=as.factor(train.data$digit)
+  test.data=pendigits[!train,]
+  test.data$digit=as.factor(test.data$digit)
+#  rfor.model = randomForest(digit ~., data = train.data, ntree=100, mtry=sqrt(p))
+  rfor.model = randomForest(digit ~., data = train.data, ntree=100)
+  pred.classes = predict(rfor.model, test.data)
+  rfor.err=rfor.err+mean(pred.classes != test.data$digit)
+  rfor.mis=rfor.mis+sum(pred.classes != test.data$digit) #number of misclassifications as the total number of test data minus the correctly predicted class
+}
+rfor.err=rfor.err/k_f #error by means of the errors
+print("Arithmetic average of errors: ",rfor.err) 
+
+rfor.mis=rfor.mis/n
+print("Misclassification rate: ",rfor.mis) 
+```
+
+Random forests perform better than all previously considered methods.
