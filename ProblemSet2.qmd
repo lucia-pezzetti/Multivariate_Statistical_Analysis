@@ -452,7 +452,9 @@ The factor scores are the estimated values of the underlying common factors. In 
 
 One of the most used approaches advanced to overcome this problem is the *regression method*. The idea is the following: consider the baseline equation of the factor model 
 $$
+\begin{align}
   X - \mu = \mathbf{L}F + \epsilon
+  \end{align}
 $$
 where we suppose that both the factors and the errors are jointly normally distributed and that both the common factors and the errors are uncorrelated within each other. Under these assumption we know that the conditional distribution of $F|X$ is again Gaussian, with conditional mean given by 
 $$
@@ -508,10 +510,15 @@ In our situation, the correlation coefficient is already very low, therefore we 
 
 ```{r, fig.width=8, fig.height=8, echo = FALSE}
 a_GW <- (n-0.5)/n
+S <- var(scores_GrWh)
 label_GW = rep("", n)
 
+df_ell1 = data.frame(ellipse(x = S[c(1,2), c(1,2)], centre = c(means.hat$x_bar, means.hat$y), level = 0.95))
+
+df_ell2 = data.frame(ellipse(x = S[c(1,2), c(1,2)], centre = c(means.hat$x_bar, means.hat$y), level = a_GW))
+
 pl <- ggplot(as.data.frame(scores_GrWh), aes(x = Factor1, y = Factor2)) + 
-  geom_point() + stat_ellipse(level = a_GW, type = "norm")
+  geom_point() + geom_path(data=df_ell2, aes(x=Factor1, y=Factor2))
 
 # before plotting we determine the potential bivariate outliers.
 # Extract components
@@ -529,10 +536,10 @@ label_GW[!dat$in.ell] = as.character(psych$Case[nrow(psych[psych$group == "PASTE
 
 pl_sc_GW <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label_GW),
             hjust = 1.0, nudge_y = -0.15, nudge_x = 0.05, size = 5, parse = T) +
-stat_ellipse(type = "norm", level = 0.95, color = "royalblue2", linetype = 2) + 
-  stat_ellipse(type = "norm", level = a_GW, color = "darkorange") + 
-  scale_color_manual(values = c("black")) + 
-  geom_text(mapping = aes(x = 0.25, y = 2.7, label = "level = (n-0.5)/n = 0.9966"), 
+geom_path(data=df_ell1, aes(x=Factor1, y=Factor2), color = "royalblue2", linetype = 2) + 
+  geom_path(data=df_ell2, aes(x=Factor1, y=Factor2), color = "darkorange") + 
+  scale_color_manual(values = c("red", "black")) + 
+  geom_text(mapping = aes(x = 0.25, y = 2.7, label = "level = (n-0.5)/n = 0.99655"), 
             colour = "darkorange") +
   geom_text(mapping = aes(x = 0.25, y = 2, label = "level = 0.95"), 
             colour = "royalblue2") +
@@ -548,11 +555,8 @@ stat_ellipse(type = "norm", level = 0.95, color = "royalblue2", linetype = 2) +
 pl_sc_GW
 ```
 
-As expected, the desired assumption of normality appears to hold. Indeed the shape of the bivariate distribution of the first two scores well resemble a standard bi-dimensional Gaussian. 
+As expected, the desired assumption of normality appears to hold. Indeed the shape of the bivariate distribution of the first two scores well resemble a standard bi-dimensional Gaussian. We also notice the presence of one bivariate outlier that has been identified by means of the variable `Case` in the original data set.
 
---------------------------------------- da togliere --------------------
-We also notice the presence of five bivariate outliers that have been identified by means of the variable `Case` of the original data set.
---------------------------------------------------------------------
 
 ### 4. Obtain the maximum likelihood solution with varimax rotation for $m = 5$ factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant--White students?
 
@@ -743,10 +747,14 @@ means.hat
 
 ```{r, fig.width=16, fig.height=8, echo=FALSE}
 a_P <- (n-0.5)/n
+S_P <- var(scores_Past)
 label_P = rep("", n)
 
+df_ell3 = data.frame(ellipse(x = S_P[c(1,2), c(1,2)], centre = c(means.hat$x_bar, means.hat$y), level = 0.95))
+df_ell4 = data.frame(ellipse(x = S_P[c(1,2), c(1,2)], centre = c(means.hat$x_bar, means.hat$y), level = a_P))
+
 pl <- ggplot(as.data.frame(scores_Past), aes(x = Factor1, y = Factor2)) + 
-  geom_point() + stat_ellipse(type = "norm", level = a_P)
+  geom_point() + geom_path(data=df_ell4, aes(x=Factor1, y=Factor2))
 
 # before plotting we determine the potential bivariate outliers.
 # Extract components
@@ -764,8 +772,8 @@ label_P[!dat$in.ell] = as.character(psych$Case[which(!dat$in.ell)])
 
 pl_sc_P <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label_P),
             nudge_y = -0.2, nudge_x = 0.0, size = 5, parse = T) +
-stat_ellipse(type = "norm", level = 0.95, color = "royalblue2", linetype = 2) + 
-  stat_ellipse(type = "norm", level = a_P, color = "darkorange") + 
+geom_path(data=df_ell3, aes(x=Factor1, y=Factor2), color = "royalblue2", linetype = 2) + 
+  geom_path(data=df_ell4, aes(x=Factor1, y=Factor2), color = "darkorange") + 
   scale_color_manual(values = c("red", "black")) + 
   geom_text(mapping = aes(x = 0.25, y = 2.7, label = "level = (n-0.5)/n = 0.9965"), 
             colour = "darkorange") +
@@ -784,9 +792,9 @@ stat_ellipse(type = "norm", level = 0.95, color = "royalblue2", linetype = 2) +
 grid.arrange(pl_sc_GW, pl_sc_P, nrow = 1)
 ```
 
-We again can observe that all the desired assumptions are satisfied. An outlier is now identified, corresponding to observations whose `Case` variable (in the original data set) has value 50. Globally, this plot seems to agree with the Grant-White one. The only slightly differences are the presence of an outlier together with a general more "concentrated" distribution in the data from the Pasteur school. 
+We again can observe that all the mentioned important features match. An outlier is identified also in the Pasteur data, corresponding to observations whose `Case` variable (in the original data set) has value 50. Globally, this plot seems to agree with the Grant-White one. Overall the two plots are very alike.
 
-From the previous point we have obtained the the first two factors for each school have the same interpretation as "verbal intelligence" and "visual, spatial and logical intelligence". Therefore we expect the plots for the data are very similar and should present the same distribution. The similarity of the plots support even more our analysis.
+In the previous point we discussed that the first two factors for each school have the same interpretations as "verbal intelligence" and "visual, spatial and logical intelligence". Therefore we expect the plots to be very similar and to present the same distribution. The similarity of the plots support even more our analysis.
 
 ## Exercise 2
 
