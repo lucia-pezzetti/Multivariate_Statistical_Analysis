@@ -60,7 +60,8 @@ var.meaning <- as.data.frame(t(rbind(var, meaning)))
 First of all we start by filtering the data set in order to retain only those observations corresponding to students from the Grant-White School. Once we have done so, we can remove the variable `group` from the data set we are going to use in the analysis. Together with group we also discard the variable `Case`, `Sex` and `Age` in order to retain only the variables regarding the psychological tests. As a side-note we also observe that the total number of considered cases is 350 whilst we only have 301 observations, suggesting that some students did not attend the test or maybe responded only partially.
 
 ```{r}
-Grant_White <- psych %>% dplyr::filter(group == "GRANT") %>% dplyr::select(-c(Case, Sex, Age, group))
+Grant_White <- psych %>% dplyr::filter(group == "GRANT") %>%
+dplyr::select(-c(Case, Sex, Age, group))
 ```
 
 The aim of the Factor Analysis is, in essence, to describe - if possible - the covariance relationships among many variables in terms of a few underlying but unobservable random variables, called factors. Loosely speaking the idea is the following: suppose that the considered variables can be grouped according to their correlation pattern - i.e. that we can cluster the variables in such a way to have high intra-groups correlations and small inter-groups correlations. It seems reasonable to believe that each group of variables may be linked to a single underlying and unobservable factor, which ultimately is responsible for the observed significant intra-group correlations.
@@ -468,7 +469,8 @@ We therefore expect that the first and second factor scores are essentially unco
 To test our hypothesis we make a scatter plot of the first two factor scores:
 
 ```{r}
-psych.5fa.ml <- factanal(x=Grant_White, factors = m[1], rotation = "varimax", scores = "regression")
+psych.5fa.ml <- factanal(x=Grant_White, factors = m[1], rotation = "varimax",
+scores = "regression")
 scores_GrWh <- psych.5fa.ml$scores
 ```
 
@@ -549,7 +551,8 @@ As expected, the desired assumption of normality appears to hold.
 As requested we now compute the maximum likelihood solution with 5 factors using the data on the students attending the Pasteur school. As before we only consider the variables related to the 24 attitudinal tests.
 
 ```{r}
-Pasteur <- psych %>% dplyr::filter(group == "PASTEUR") %>% dplyr::select(-c(Case, Sex, Age, group))
+Pasteur <- psych %>% dplyr::filter(group == "PASTEUR") %>%
+dplyr::select(-c(Case, Sex, Age, group))
 ```
 
 Let's first of all look at the correlations among those variables.
@@ -713,7 +716,8 @@ To conclude, we can say that we have found quite a good agreement between the in
 Exactly as we have done for the data on the students from the Grant-White school, we compute the factor scores related to the Pasteur students by means of the function `factanal`, using the varimax rotation and the regression method to compute the scores.
 
 ```{r}
-psych.5fa.ml <- factanal(x=Pasteur, factors = m[1], rotation = "varimax", scores = "regression")
+psych.5fa.ml <- factanal(x=Pasteur, factors = m[1], rotation = "varimax", 
+scores = "regression")
 scores_Past <- psych.5fa.ml$scores
 ```
 
@@ -826,7 +830,8 @@ for(i in c(0,1,2,3,5,6,7,8,9))
       expand_limits(x = c(-0.0, 40.0)) +
       ggtitle(paste("Chi-squared QQ-plot of\n squared generalized distances\nDigit: ",i))
 }
-grid.arrange(pl[[1]], pl[[2]], pl[[3]], pl[[4]], pl[[6]], pl[[7]], pl[[8]], pl[[9]], pl[[10]], nrow=3)
+grid.arrange(pl[[1]], pl[[2]], pl[[3]], pl[[4]], pl[[6]], pl[[7]], pl[[8]], pl[[9]],
+pl[[10]], nrow=3)
 ```
 
 We left out the particular case of the digit $4$, which has an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may still be a Gaussian vector without a pdf. To assess this, we project it in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$:
@@ -1024,7 +1029,8 @@ for (i in 1:k_f) {
 error44=colMeans(err)
 mis_rate44=mis/n
 
-tibble("rank"=1:9, "arithmetic mean of errors"=error44, "misclassification rate"=mis_rate44)
+tibble("rank"=1:9, "arithmetic mean of errors"=error44,
+"misclassification rate"=mis_rate44)
 ```
 
 As expected, the differences are hardly noticeable.
@@ -1136,5 +1142,6 @@ for(aux in 1:10){
   knn.mis[aux]=knn.mis_tmp/n
 }
 
-data.frame("k"=1:aux, "Arithmetic average of errors" = knn.err, "Misclassification rate" = knn.mis) 
+data.frame("k"=1:aux, "Arithmetic average of errors" = knn.err,
+"Misclassification rate" = knn.mis) 
 ```
