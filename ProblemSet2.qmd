@@ -124,7 +124,7 @@ a <- (n-0.5)/n
 x = 1:length(d)
 outliers <- which(d > qchisq(a, df = p))
 labels <- rep("", n)
-labels[outliers] <- as.character(outliers)
+labels[outliers] <- as.character(psych$Case[nrow(psych[psych$group == "PASTEUR",]) + outliers])
 colors <- rep("black", n)
 colors[outliers] <- "red"
 
@@ -138,7 +138,7 @@ ggplot(as.data.frame(d), aes(x = x, y = d, label = labels)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-As we can immediately see from the plot, observations 12 and 24 are multivariate ouliers: it is then customary to temporarily remove them and study again the multivariate normality of the dataset.
+As we can immediately see from the plot, observations having values 213 and 225 of the `Case` variable - in the original data set - are multivariate outliers: it is then customary to temporarily remove them and study again the multivariate normality of the dataset.
 
 ```{r, echo=FALSE}
 without_outliers <- Grant_White[-c(12,24),]
@@ -492,7 +492,7 @@ data.frame("correlation" = cor(scores_GrWh[,1], scores_GrWh[,2]))
 
 A value that is indeed small.
 
-Finally, a further insightful thing to verify is whether the assumption of bivariate normality actually holds: in particular, by the theory we expect that the first and second factors are jointly normally distributed with mean zero and identity covariance matrix. This is translated in a plot in which the points are centered around the origin and the elliptic contour plots have a nice circular shape.
+Finally, a further insightful thing to verify is whether the assumption of bivariate normality actually holds: in particular, by the theory we expect that the first and second factors are jointly normally distributed with mean zero and identity covariance matrix. This is translated in a plot in which the points are centered around the origin and the elliptic contour plots have a nice circular shape. In particular we have plotted 
 
 Let's first of all compute the sample means of the two factor scores:
 
@@ -511,7 +511,7 @@ a_GW <- (n-0.5)/n
 label_GW = rep("", n)
 
 pl <- ggplot(as.data.frame(scores_GrWh), aes(x = Factor1, y = Factor2)) + 
-  geom_point() + stat_ellipse(level = a)
+  geom_point() + stat_ellipse(level = a_GW, type = "norm")
 
 # before plotting we determine the potential bivariate outliers.
 # Extract components
@@ -529,9 +529,9 @@ label_GW[!dat$in.ell] = as.character(psych$Case[nrow(psych[psych$group == "PASTE
 
 pl_sc_GW <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label_GW),
             hjust = 1.0, nudge_y = -0.15, nudge_x = 0.05, size = 5, parse = T) +
-stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) + 
-  stat_ellipse(level = a_GW, color = "darkorange") + 
-  scale_color_manual(values = c("red", "black")) + 
+stat_ellipse(type = "norm", level = 0.95, color = "royalblue2", linetype = 2) + 
+  stat_ellipse(type = "norm",level = a_GW, color = "darkorange") + 
+  scale_color_manual(values = c("black")) + 
   geom_text(mapping = aes(x = 0.25, y = 2.7, label = "level = (n-0.5)/n = 0.9965"), 
             colour = "darkorange") +
   geom_text(mapping = aes(x = 0.25, y = 2, label = "level = 0.95"), 
@@ -548,7 +548,11 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
 pl_sc_GW
 ```
 
-As expected, the desired assumption of normality appears to hold. Indeed the shape of the bivariate distribution of the first two scores well resemble a standard bi-dimensional Gaussian. We also notice the presence of five bivariate outliers that have been identified by means of the variable `Case` of the original data set.
+As expected, the desired assumption of normality appears to hold. Indeed the shape of the bivariate distribution of the first two scores well resemble a standard bi-dimensional Gaussian. 
+
+--------------------------------------- da togliere --------------------
+We also notice the presence of five bivariate outliers that have been identified by means of the variable `Case` of the original data set.
+--------------------------------------------------------------------
 
 ### 4. Obtain the maximum likelihood solution with varimax rotation for $m = 5$ factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant--White students?
 
@@ -742,7 +746,7 @@ a_P <- (n-0.5)/n
 label_P = rep("", n)
 
 pl <- ggplot(as.data.frame(scores_Past), aes(x = Factor1, y = Factor2)) + 
-  geom_point() + stat_ellipse(level = a)
+  geom_point() + stat_ellipse(type = "norm", level = a_P)
 
 # before plotting we determine the potential bivariate outliers.
 # Extract components
@@ -760,8 +764,8 @@ label_P[!dat$in.ell] = as.character(psych$Case[which(!dat$in.ell)])
 
 pl_sc_P <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label_P),
             nudge_y = -0.2, nudge_x = 0.0, size = 5, parse = T) +
-stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) + 
-  stat_ellipse(level = a_P, color = "darkorange") + 
+stat_ellipse(type = "norm", level = 0.95, color = "royalblue2", linetype = 2) + 
+  stat_ellipse(type = "norm", level = a_P, color = "darkorange") + 
   scale_color_manual(values = c("red", "black")) + 
   geom_text(mapping = aes(x = 0.25, y = 2.7, label = "level = (n-0.5)/n = 0.9965"), 
             colour = "darkorange") +
@@ -780,7 +784,7 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
 grid.arrange(pl_sc_GW, pl_sc_P, nrow = 1)
 ```
 
-We again can observe that all the desired assumptions are satisfied. Only two outliers have now been identified, corresponding to observations whose `Case` variable (in the original data set) has value 50 and 155. Globally, this plot seems to agree with the Grant-White one. The only slightly differences are the presence of more outliers in the data from the Grant-White school and a minor horinzontal strecth in the data from the Pasteur one. 
+We again can observe that all the desired assumptions are satisfied. An outlier is now identified, corresponding to observations whose `Case` variable (in the original data set) has value 50. Globally, this plot seems to agree with the Grant-White one. The only slightly differences are the presence of an outlier together with a general more "concentrated" distribution in the data from the Pasteur school. 
 
 From the previous point we have obtained the the first two factors for each school have the same interpretation as "verbal intelligence" and "visual, spatial and logical intelligence". Therefore we expect the plots for the data are very similar and should present the same distribution. The similarity of the plots support even more our analysis.
 
@@ -1042,7 +1046,8 @@ error44=colMeans(err)
 mis_rate44=mis/n
 train_err44 = train_err/((k_f -1)*n)
 
-tibble("rank"=1:9, "training errors" = train_err44, "arithmetic mean of errors"=error44,
+tibble("rank"=1:9, "training errors" = train_err44, 
+       "arithmetic mean of errors"=error44,
 "misclassification rate"=mis_rate44)
 ```
 
@@ -1094,7 +1099,8 @@ for(i in 1:k_f){
   mlog.model = nnet::multinom(digit ~., data = train.data)
   pred.classes = mlog.model %>% predict(test.data)
   mlog.err=mlog.err+1-mean(pred.classes == test.data$digit)
-  mlog.mis=mlog.mis+sum(!train)-sum(pred.classes == test.data$digit) #number of misclassifications as the total number of test data - the correctly predicted class
+  mlog.mis=mlog.mis+sum(!train)-sum(pred.classes == test.data$digit) 
+  #number of misclassifications as the total number of test data - the correctly predicted class
 }
 mlog.err=mlog.err/k_f #error by means of the errors
 
@@ -1103,7 +1109,8 @@ mlog.mis=mlog.mis/n
 ```
 
 ```{r}
-data.frame("Arithmetic average of errors"=mlog.err, "Misclassification rate"= mlog.mis)
+data.frame("Arithmetic average of errors"=mlog.err, 
+           "Misclassification rate"= mlog.mis)
 ```
 
 The results are good, but not as good as those of RDA. Furthermore, the function used to implement this Multinomial Logistic Regression relies on a random choice of initial parameters and the outcome is sensitive to the choice of these initial values.
@@ -1128,7 +1135,8 @@ for(i in 1:k_f){
 rfor.err=rfor.err/k_f #error as means of the errors
 rfor.mis=rfor.mis/n
 
-data.frame("Arithmetic average of errors" = rfor.err, "Misclassification rate" = rfor.mis) 
+data.frame("Arithmetic average of errors" = rfor.err,
+           "Misclassification rate" = rfor.mis) 
 ```
 
 Random forests perform better than all previously considered methods.
@@ -1149,7 +1157,8 @@ for(aux in 1:10){
     train.data$digit=as.factor(train.data$digit)
     test.data=pendigits[!train,]
     test.data$digit=as.factor(test.data$digit)
-    knn.pred = class::knn(train=train.data[,1:16], cl=train.data[,17], test=test.data[,1:16], k=aux)
+    knn.pred = class::knn(train=train.data[,1:16], cl=train.data[,17],
+                          test=test.data[,1:16], k=aux)
     knn.err_tmp=knn.err_tmp+mean(knn.pred != test.data$digit)
     knn.mis_tmp=knn.mis_tmp+sum(knn.pred != test.data$digit) 
   }
