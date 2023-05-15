@@ -494,7 +494,7 @@ data.frame("correlation" = cor(scores_GrWh[,1], scores_GrWh[,2]))
 
 A value that is indeed small.
 
-Finally, a further insightful thing to verify is whether the assumption of bivariate normality actually holds: in particular, by the theory we expect that the first and second factors are jointly normally distributed with mean zero and identity covariance matrix. This is translated in a plot in which the points are centered around the origin and the elliptic contour plots have a nice circular shape. In particular we have plotted 
+Finally, a further insightful thing to verify is whether the assumption of bivariate normality actually holds: in particular, by the theory we expect that the first and second factors are jointly normally distributed with mean zero and identity covariance matrix. This is translated in a plot in which the points are centered around the origin and the elliptic contour plots have a nice circular shape.  
 
 Let's first of all compute the sample means of the two factor scores:
 
@@ -851,7 +851,7 @@ grid.arrange(pl[[1]], pl[[2]], pl[[3]], pl[[4]], pl[[6]], pl[[7]], pl[[8]], pl[[
 pl[[10]], nrow=3)
 ```
 
-We left out the particular case of the digit $4$, which has an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may still be a Gaussian vector without a pdf. To assess this, we project it in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$:
+We left out the particular case of the digit *4*, which has an interesting feature: the variable `y8` takes value $0$ for every observation. This implies that it cannot be a $16$-dimensional multivariate normal with "proper dimension" (the covariance matrix is only positive semi-definite and the determinant is zero), but it may still be a Gaussian vector without a pdf. To assess this, we project it in the $15$-dimensional hyperplane $\{$`y_8`$=0\}$:
 
 ```{r, echo=FALSE}
 by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
@@ -892,9 +892,9 @@ data.frame(digit=0:9, frobenius=f)
     
 ```
 
-We find that there are some digits, namely $5$, $8$, $0$ and $1$, for which the assumption of equal class covariance matrix might be more "stretched" than for the others. We keep this in mind for future reference, as this might be linked to worse performance of the classification of these digits. Even more so if we consider that also the normality assumption seemed to be unfitting, so we lack theoretical guarantees on a good performance of LDA.
+We find that there are some digits, namely *5*, *8*, *0* and *1*, for which the assumption of equal class covariance matrix might be more "stretched" than for the others. We keep this in mind for future reference, as this might be linked to worse performance of the classification of these digits. Even more so if we consider that also the normality assumption seemed to be unfitting, so we lack theoretical guarantees on a good performance of LDA.
 
-### 1. Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do the discriminate the 10 digits? Refer also to theory.
+### 1. Use linear discriminant analysis (LDA). Display the first two LD variables in a scatterplot, color coding the observations according to variable digit.col below. How well do they discriminate the 10 digits? Refer also to theory.
 
 First of all, as requested, we proceed by implementing the linear discriminant analysis:
 
@@ -932,7 +932,7 @@ pl
 An analysis of the considered scatterplot should therefore give an idea of the overall behavior of the classifier. However, since the proportion of trace of the first two LDs is just around $0.6$, we do not expect the information provided by the plot to be entirely accurate for a full rank LDA.\
 In the plot we can appreciate that the digit *4* forms a clear and compact cloud at the top, and so does *2* at the left. Meanwhile the other digits have clouds with some values far away from the centroids (the points highlighted by the black boundaries). The worst case seems to be digit *5*, which appears to have somewhat of a "bi-modal projected distribution", with points concentrated in two separated regions. Digits *0* and *8* show some overlap with the neighboring ones, and *1* even more than them. In general all the other digits do not form a compact distribution around their centroids and display very different variances in the LD1-LD2 plane.
 
-We can also observe that the first two discriminant directions do a quite good job in separating the class centroids, as their associated coordinates on the respective axes are all quite different from one another. In particular, LD1 seems to "isolate" quite well the centroids associated to $0$ and $2$, whereas LD2 does the same for $4$ and $8$. Conversely, $1$, $3$ and $7$ appear to be all "clustered togheter" by the first two LDs.
+We can also observe that the first two discriminant directions do a quite good job in separating the class centroids, as their associated coordinates on the respective axes are all quite different from one another. In particular, LD1 seems to "isolate" quite well the centroids associated to *0* and *2*, whereas LD2 does the same for *4* and *8*. Conversely, *1*, *3* and *7* appear to be all "clustered together" by the first two LDs.
 
 We can start making some speculations, that we will investigate better in the analysis below.\
 Digit *5* could be confused with *9* due to their considerable overlapping area: we could have suspected it, considering how similar their shapes are. The same goes for *8* and *0*.\
