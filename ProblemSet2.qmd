@@ -111,7 +111,8 @@ d = mahalanobis(Grant_White, center = x.bar, cov = S);
 ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), y = sort(d))) + 
  geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
   expand_limits(x = c(9.0, 60.0), y = c(9.0, 60.0)) +
-  ggtitle("Chi-squared QQ-plot of squared generalized distances - Grant-White school")
+  ggtitle("Chi-squared QQ-plot of squared generalized distances\n Grant-White school") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 As we can see from the plot, the points deviate from the straight line only in the right top end. This indicates that the largest values are more spread out than for a $\chi_{24}^2$: the tail of the chi-square distribution is lighter. So, the plot seems to suggest that the Mahalanobis distances in the sample are more right skewed than you would expect to see with a multivariate normal.
@@ -149,7 +150,8 @@ d = mahalanobis(without_outliers, center = x.bar, cov = S);
 ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), y = sort(d))) + 
  geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
   expand_limits(x = c(9.0, 60.0), y = c(9.0, 60.0)) +
-  ggtitle("Chi-squared QQ-plot of squared generalized distances without outliers")
+  ggtitle("Chi-squared QQ-plot of squared generalized distances\n without outliers") +
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 The chi-square qq-plot of the Mahalanobis distances now seems to fit well the assumption of multivariate normality.
@@ -476,7 +478,9 @@ scores_GrWh <- psych.5fa.ml$scores
 
 ```{r, fig.height=4, fig.width=4}
 ggplot(as.data.frame(scores_GrWh), aes(x = Factor1, y = Factor2)) + 
-  geom_point()
+  geom_point() +
+  ggtitle("Scatter-plot of the first two factor scores\n for the Grant-White students") +
+  theme(plot.title = element_text(hjust = 0.5, size = 10))
 
 ```
 
@@ -521,7 +525,7 @@ dat <- data.frame(
   in.ell = as.logical(point.in.polygon(points$x, points$y, ell$x, ell$y))
 )
 
-label_GW[!dat$in.ell] = as.character(which(!dat$in.ell))
+label_GW[!dat$in.ell] = as.character(psych$Case[nrow(psych[psych$group == "PASTEUR",]) + which(!dat$in.ell)])
 
 pl_sc_GW <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label_GW),
             hjust = 1.0, nudge_y = -0.15, nudge_x = 0.05, size = 5, parse = T) +
@@ -538,13 +542,13 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
                           label = "(x_bar, y_bar)"), nudge_x = 0.3, 
             nudge_y = -0.1, colour = "darkorchid3") +
   xlab("Factor 1") + ylab("Factor 2") + 
-  ggtitle("Scatter-plot of the first two factor scores for the Grant-White students") +
-  theme(plot.title = element_text(hjust = 0)) +
+  ggtitle("Scatter-plot of the first two factor scores\n for the Grant-White students") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20)) +
   xlim(-3.3, 3.3) + ylim(-3.3, 3.3)
 pl_sc_GW
 ```
 
-As expected, the desired assumption of normality appears to hold.
+As expected, the desired assumption of normality appears to hold. Indeed the shape of the bivariate distribution of the first two scores well resemble a standard bi-dimensional Gaussian. We also notice the presence of five bivariate outliers that have been identified by means of the variable `Case` of the original data set.
 
 ### 4. Obtain the maximum likelihood solution with varimax rotation for $m = 5$ factors by using the Pasteur students data. Is the interpretation to the common factors similar to that of Grant--White students?
 
@@ -583,7 +587,7 @@ d = mahalanobis(Pasteur, center = x.bar, cov = S);
 ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), y = sort(d))) + 
  geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
   expand_limits(x = c(9.0, 60.0), y = c(9.0, 60.0)) +
-  ggtitle("Chi-squared QQ-plot of squared generalized distancees - Pasteur School")
+  ggtitle("Chi-squared QQ-plot of squared generalized distancees\n Pasteur School") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
 As we can see, the assumption of normality seems to perfectly fit the data coming from the Pasteur school.
@@ -752,7 +756,7 @@ dat <- data.frame(
   in.ell = as.logical(point.in.polygon(points$x, points$y, ell$x, ell$y))
 )
 
-label_P[!dat$in.ell] = as.character(which(!dat$in.ell))
+label_P[!dat$in.ell] = as.character(psych$Case[which(!dat$in.ell)])
 
 pl_sc_P <- ggplot(dat, aes(x = x, y = y)) + geom_point(aes(col = in.ell), show.legend = F) + geom_text(mapping = aes(label = label_P),
             nudge_y = -0.2, nudge_x = 0.0, size = 5, parse = T) +
@@ -769,14 +773,14 @@ stat_ellipse(level = 0.95, color = "royalblue2", linetype = 2) +
                           label = "(x_bar, y_bar)"), nudge_x = 0.0, 
             nudge_y = -0.15, colour = "darkorchid3") +
   xlab("Factor 1") + ylab("Factor 2") + 
-  ggtitle("Scatter-plot of the first two factor scores for the Pasteur students") +
-  theme(plot.title = element_text(hjust = 0.5)) +
+  ggtitle("Scatter-plot of the first two factor scores\n for the Pasteur students") +
+  theme(plot.title = element_text(hjust = 0.5, size = 20)) +
   xlim(-3.3, 3.3) + ylim(-3.3, 3.3)
 
 grid.arrange(pl_sc_GW, pl_sc_P, nrow = 1)
 ```
 
-We again can observe that all the desired assumptions are satisfied. Only two outliers have now been identified, corresponding to observations 47 and 144. Globally, this plot seems to agree with the Grant-White one.
+We again can observe that all the desired assumptions are satisfied. Only two outliers have now been identified, corresponding to observations whose `Case` variable (in the original data set) has value 50 and 155. Globally, this plot seems to agree with the Grant-White one. The only slightly differences are the presence of more outliers in the data from the Grant-White school and a minor horinzontal strecth in the data from the Pasteur one. 
 
 From the previous point we have obtained the the first two factors for each school have the same interpretation as "verbal intelligence" and "visual, spatial and logical intelligence". Therefore we expect the plots for the data are very similar and should present the same distribution. The similarity of the plots support even more our analysis.
 
@@ -828,7 +832,8 @@ for(i in c(0,1,2,3,5,6,7,8,9))
   pl[[i+1]]=ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = 16), y=sort(d))) + 
       geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
       expand_limits(x = c(-0.0, 40.0)) +
-      ggtitle(paste("Chi-squared QQ-plot of\n squared generalized distances\nDigit: ",i))
+      ggtitle(paste("Chi-squared QQ-plot of\n squared generalized distances\nDigit: ",i)) +
+    theme(plot.title = element_text(hjust = 0.5, size = 20))
 }
 grid.arrange(pl[[1]], pl[[2]], pl[[3]], pl[[4]], pl[[6]], pl[[7]], pl[[8]], pl[[9]],
 pl[[10]], nrow=3)
@@ -844,7 +849,8 @@ by_digit= pendigits %>% dplyr::filter(digit==4) %>% dplyr::select(-c(y8,digit))
   ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = 15), y=sort(d))) + 
       geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
       expand_limits(x = c(-0.0, 40.0)) +
-      ggtitle("Chi-squared QQ-plot of\n squared generalized distances")
+      ggtitle("Chi-squared QQ-plot of\n squared generalized distances") +
+    theme(plot.title = element_text(hjust = 0.5))
 ```
 
 It seems that all these distributions suffer, to different extents, the effects of heavier-than-expected right tails, therefore we cannot assess gaussianity of any conditional distribution.\
@@ -898,14 +904,16 @@ means.hat <- aggregate(lda.pred$x,by=list(pendigits$digit),FUN=mean)[,-1]
 
 We can now display the first two LD variables in the below scatterplot, which gives the "optimal" bi-dimensional representation of the data for "separation purposes" (i.e. with minimized within-class variance and maximized between-class variance). Note that the assumptions under which this optimality holds, as previously discussed, are not really met, but we still expect a good result:
 
-```{r, echo=FALSE}
+```{r, fig.height=12, fig.width=18, echo=FALSE}
 pl <- ggplot(as.data.frame(lda.pred$x), mapping = aes(x = LD1, y = LD2)) + 
   geom_point(aes(colour = factor(pendigits$digit)), alpha = 0.5, show.legend = T) +
   stat_ellipse(aes(colour = factor(pendigits$digit))) +
   scale_color_manual(values = c("darkgreen",  "brown", "lightblue",  "magenta", "purple", "blue", "red", "lightgreen", "orange", "cyan")) +
   labs(colour = "digit") + 
   geom_point(as.data.frame(means.hat), mapping = aes(x = LD1, y = LD2, colour = factor(pendigits$digit)), 
-             shape = 21, colour = "black", fill = lookup, size = 3.5, stroke = 1.0)
+             shape = 21, colour = "black", fill = lookup, size = 5, stroke = 1.0) +
+  ggtitle("scatter-plot of the first two LD variables")+
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 pl
 ```
 
@@ -1008,6 +1016,7 @@ k_f=44
 # Initialize error rates vector
 err=matrix( nrow=k_f, ncol=min(k-1,p) )
 mis=rep(0, min(k-1, p))
+train_err = rep(0, min(k-1, p))
 
 #Loop over folds
 for (i in 1:k_f) {
@@ -1021,28 +1030,34 @@ for (i in 1:k_f) {
   for(j in 1:min(k-1,p)){
     # Predict test data using LDA model
     lda.pred = predict(lda.fit, pendigits[test,], dimen = j)$class
+    lda.pred_train = predict(lda.fit, pendigits[train,], dimen = j)$class
+    
     # Compute error rates
+    train_err[j] = train_err[j]+sum(lda.pred_train != pendigits$digit[train])
     mis[j] = mis[j]+sum(lda.pred != pendigits$digit[test])
     err[i,j] = 1 - sum(lda.pred == pendigits$digit[test])/length(lda.pred)
   }
 }
 error44=colMeans(err)
 mis_rate44=mis/n
+train_err44 = train_err/((k_f -1)*n)
 
-tibble("rank"=1:9, "arithmetic mean of errors"=error44,
+tibble("rank"=1:9, "training errors" = train_err44, "arithmetic mean of errors"=error44,
 "misclassification rate"=mis_rate44)
 ```
 
 As expected, the differences are hardly noticeable.
 
-```{r, fig.height=10, echo=FALSE}
-dataf=data.frame("rank" = as.character(9:1), "arithmetic_mean" = error44[9:1], "weighted_mean" = mis_rate44[9:1])
+```{r, fig.height=12, fig.width= 18, echo=FALSE, warning=FALSE}
+dataf=data.frame("rank" = as.character(9:1), "training_error" = train_err44[9:1], "arithmetic_mean" = error44[9:1], "misclassification_rate" = mis_rate44[9:1])
 dataf <- melt(dataf)
 
 ggplot(dataf, aes(x=rank, y=value, label = as.character(round(value, 4)), color = variable, group = variable, shape = variable)) + geom_point(size = 3) + 
   geom_line() + geom_label_repel(show.legend = F) +
   scale_x_discrete(limits=levels(factor(1:9))) +
-  scale_color_manual(values = c("darkorange", "royalblue3"))
+  scale_color_manual(values = c("red", "darkorange", "royalblue3")) +
+  ggtitle("arithmetic error mean and misclassification rate for the test data\n and training error") +
+  theme(plot.title = element_text(hjust = 0.5, size = 30))
 ```
 
 We can see that the cross validation error keeps improving as the number of dimensions grows, which suggests that all linear discriminant directions matter for classification purposes - albeit to different extents. We could make a case for keeping only 6 dimensions if we focused on dimensionality reduction, following a sort of "elbow rule". Overall, the most balanced decision is to keep all 9 dimensions.
