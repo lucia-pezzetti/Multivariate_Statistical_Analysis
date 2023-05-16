@@ -9,7 +9,6 @@
   numbers=noendperiod]{scrartcl}
 
 \usepackage{amsmath,amssymb}
-\usepackage{lmodern}
 \usepackage{iftex}
 \ifPDFTeX
   \usepackage[T1]{fontenc}
@@ -19,6 +18,10 @@
   \usepackage{unicode-math}
   \defaultfontfeatures{Scale=MatchLowercase}
   \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
 \fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -160,10 +163,12 @@
 \@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
 \makeatother
 \makeatletter
-\@ifpackageloaded{tcolorbox}{}{\usepackage[many]{tcolorbox}}
+\@ifpackageloaded{tcolorbox}{}{\usepackage[skins,breakable]{tcolorbox}}
 \makeatother
 \makeatletter
 \@ifundefined{shadecolor}{\definecolor{shadecolor}{rgb}{.97, .97, .97}}
+\makeatother
+\makeatletter
 \makeatother
 \makeatletter
 \makeatother
@@ -189,7 +194,7 @@
 
 \begin{document}
 \maketitle
-\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[enhanced, borderline west={3pt}{0pt}{shadecolor}, sharp corners, breakable, interior hidden, frame hidden, boxrule=0pt]}{\end{tcolorbox}}\fi
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[boxrule=0pt, breakable, enhanced, frame hidden, borderline west={3pt}{0pt}{shadecolor}, interior hidden, sharp corners]}{\end{tcolorbox}}\fi
 
 \hypertarget{exercise-1}{%
 \subsection{Exercise 1}\label{exercise-1}}
@@ -307,11 +312,6 @@ Therefore we start by assessing this assumption.
 To do so we plot the chi-square qq-plot of the squared Mahalanobis
 distances: under the assumption of multivariate normality, the data will
 fall along the bisector.
-
-\begin{verbatim}
-Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-i Please use `linewidth` instead.
-\end{verbatim}
 
 \includegraphics{ProblemSet2_files/figure-pdf/unnamed-chunk-9-1.pdf}
 
@@ -1054,11 +1054,9 @@ error terms \(\epsilon_i\) - outnumbers the observed \(x_i\).
 
 One of the most used approaches advanced to overcome this problem is the
 \emph{regression method}. The idea is the following: consider the
-baseline equation of the factor model
-\begin{align}
+baseline equation of the factor model \[
   X - \mu = \mathbf{L}F + \epsilon
-  \end{align}
- where we suppose that both the factors and the errors are jointly
+\] where we suppose that both the factors and the errors are jointly
 normally distributed and that both the common factors and the errors are
 uncorrelated within each other. Under these assumption we know that the
 conditional distribution of \(F|X\) is again Gaussian, with conditional
@@ -1975,15 +1973,15 @@ difference.
 
 \begin{verbatim}
   rank training.errors arithmetic.mean.of.errors misclassification.rate
-1    1       0.5439347                 0.5491300              0.5491266
-2    2       0.3234974                 0.3244313              0.3244178
-3    3       0.2513710                 0.2530075              0.2530022
+1    1       0.5439410                 0.5491300              0.5491266
+2    2       0.3234953                 0.3244313              0.3244178
+3    3       0.2513689                 0.2530075              0.2530022
 4    4       0.2138342                 0.2145289              0.2145197
-5    5       0.1637406                 0.1651352              0.1651201
+5    5       0.1637406                 0.1652261              0.1652111
 6    6       0.1399517                 0.1416476              0.1416485
 7    7       0.1329677                 0.1347355              0.1347344
-8    8       0.1245303                 0.1259144              0.1259098
-9    9       0.1229097                 0.1242810              0.1242722
+8    8       0.1245324                 0.1259144              0.1259098
+9    9       0.1229118                 0.1242810              0.1242722
 \end{verbatim}
 
 As expected, the differences are hardly noticeable.
@@ -2050,7 +2048,7 @@ previous ones.
 
 \begin{verbatim}
       APER   crossval 
-0.01410116 0.01538057 
+0.01455604 0.01545961 
 \end{verbatim}
 
 Here ``APER'' (apparent error rate) corresponds to what we called
@@ -2081,7 +2079,8 @@ repeat k-fold CV on this model using the same criterion above.
 \NormalTok{  pred.classes }\OtherTok{=}\NormalTok{ mlog.model }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{predict}\NormalTok{(test.data)}
 \NormalTok{  mlog.err}\OtherTok{=}\NormalTok{mlog.err}\SpecialCharTok{+}\DecValTok{1}\SpecialCharTok{{-}}\FunctionTok{mean}\NormalTok{(pred.classes }\SpecialCharTok{==}\NormalTok{ test.data}\SpecialCharTok{$}\NormalTok{digit)}
 \NormalTok{  mlog.mis}\OtherTok{=}\NormalTok{mlog.mis}\SpecialCharTok{+}\FunctionTok{sum}\NormalTok{(}\SpecialCharTok{!}\NormalTok{train)}\SpecialCharTok{{-}}\FunctionTok{sum}\NormalTok{(pred.classes }\SpecialCharTok{==}\NormalTok{ test.data}\SpecialCharTok{$}\NormalTok{digit) }
-  \CommentTok{\#number of misclassifications as the total number of test data {-} the correctly predicted class}
+  \CommentTok{\#number of misclassifications as the total number of test data {-} }
+  \CommentTok{\#the correctly predicted class}
 \NormalTok{\}}
 \NormalTok{mlog.err}\OtherTok{=}\NormalTok{mlog.err}\SpecialCharTok{/}\NormalTok{k\_f }\CommentTok{\#error by means of the errors}
 

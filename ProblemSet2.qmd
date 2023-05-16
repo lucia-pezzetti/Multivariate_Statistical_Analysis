@@ -1098,7 +1098,8 @@ for(i in 1:k_f){
   pred.classes = mlog.model %>% predict(test.data)
   mlog.err=mlog.err+1-mean(pred.classes == test.data$digit)
   mlog.mis=mlog.mis+sum(!train)-sum(pred.classes == test.data$digit) 
-  #number of misclassifications as the total number of test data - the correctly predicted class
+  #number of misclassifications as the total number of test data - 
+  #the correctly predicted class
 }
 mlog.err=mlog.err/k_f #error by means of the errors
 
@@ -1169,4 +1170,3 @@ data.frame("k"=1:aux, "Arithmetic average of errors" = knn.err,
 ```
 
 In terms of raw error rates, k-NN should be our best choice. However, due to its instability, we should probably opt for Random Forests regardless.
-
