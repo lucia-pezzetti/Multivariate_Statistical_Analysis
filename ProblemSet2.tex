@@ -189,7 +189,7 @@
 
 \begin{document}
 \maketitle
-\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[borderline west={3pt}{0pt}{shadecolor}, enhanced, sharp corners, interior hidden, breakable, frame hidden, boxrule=0pt]}{\end{tcolorbox}}\fi
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[interior hidden, boxrule=0pt, sharp corners, borderline west={3pt}{0pt}{shadecolor}, frame hidden, breakable, enhanced]}{\end{tcolorbox}}\fi
 
 \hypertarget{exercise-1}{%
 \subsection{Exercise 1}\label{exercise-1}}
@@ -236,8 +236,8 @@ First of all we start by filtering the data set in order to retain only
 those observations corresponding to students from the Grant-White
 School. Once we have done so, we can remove the variable \texttt{group}
 from the data set we are going to use in the analysis. Together with
-group we also discard the variable \texttt{Case}, \texttt{Sex} and
-\texttt{Age} in order to retain only the variables regarding the
+\texttt{group} we also discard the variable \texttt{Case}, \texttt{Sex}
+and \texttt{Age} in order to retain only the variables regarding the
 psychological tests. As a side-note we also observe that the total
 number of considered cases is 350 whilst we only have 301 observations,
 suggesting that some students did not attend the test or maybe responded
@@ -266,9 +266,8 @@ results of the ``ability'' tests performed are just different measures
 of fewer broad domains like for example verbal or spatial abilities,
 memory or mathematical deduction.
 
-We start our analysis by considering the correlation matrix:
-
-It is helpful to plot it:
+We start our analysis by considering the correlation matrix. It is
+helpful to plot it:
 
 \includegraphics{ProblemSet2_files/figure-pdf/unnamed-chunk-7-1.pdf}
 
@@ -289,7 +288,7 @@ they aim to measure. Nevertheless we may think to coding, additions,
 counting dots and recognition of capital letters as quite simple tasks
 and so we may expect that the students who score higher in these tests
 may be the most precise or focused. This may explain why the results of
-these tests are quite high correlated.
+these tests are quite highly correlated.
 
 Finally, we also mention the group of the variables \texttt{V20},
 \texttt{V21}, \texttt{V22}, \texttt{V23} and \texttt{V9} - all quite
@@ -586,7 +585,7 @@ improve the fit of the model, some examples include:
   using different methods to perform the factor analysis - for example a
   possibility is to use the principal component approach;
 \item
-  finally,we may consider alternative analyses - such as principal
+  finally, we may consider alternative analyses - such as principal
   component analysis, cluster analysis, or discriminant analysis.
 \end{itemize}
 
@@ -748,7 +747,7 @@ we can compute the residual matrix \[
 \]
 
 resulting from the approximation of \(\mathbf{R}\) via the simpler
-structure \(\hat{\mathbf{L}}\hat{\mathbf{L}}^T - \hat{\mathbf{\Psi}}\).
+structure \(\hat{\mathbf{L}}\hat{\mathbf{L}}^T + \hat{\mathbf{\Psi}}\).
 We can then summarize how far from the perfect approximation we are by
 computing its Frobenius norm.
 
@@ -786,9 +785,9 @@ correlation matrix is not so satisfactory.
 Overall, the comparison seems to suggests that neither the 5 factors
 model nor the 6 factors one are good fit for the data. Anyway, if we
 stick to the problem of deciding how many factors to retain, the choice
-of 5 common factors may appear to be the most preferable one. Indeed, as
-it emerges from all the comment above, the improvements related to the
-use of six factors are not sufficiently noteworthy.
+of 5 common factors may appear to be the preferable one. Indeed, as it
+emerges from all the comments above, the improvements related to the use
+of six factors are not sufficiently noteworthy.
 
 \hypertarget{give-an-interpretation-to-the-common-factors-in-the-m-5-solution-with-varimax-rotation}{%
 \subsubsection{\texorpdfstring{2. Give an interpretation to the common
@@ -1058,13 +1057,13 @@ One of the most used approaches advanced to overcome this problem is the
 baseline equation of the factor model 
 \begin{align}
   X - \mu = \mathbf{L}F + \epsilon
-\end{align}
+  \end{align}
  where we suppose that both the factors and the errors are jointly
 normally distributed and that both the common factors and the errors are
 uncorrelated within each other. Under these assumption we know that the
 conditional distribution of \(F|X\) is again Gaussian, with conditional
 mean given by \[
- \mathbb{L}^T\mathbf{\Sigma}^{-1}(X-\mu) = \mathbf{L}^T(\mathbf{LL}^T -\mathbf{\Psi})^{-1}(X-\mu)
+ \mathbf{L}^T\mathbf{\Sigma}^{-1}(X-\mu) = \mathbf{L}^T(\mathbf{LL}^T -\mathbf{\Psi})^{-1}(X-\mu)
 \] Given so, a natural estimate for \(f_i\) is simply the corresponding
 estimate of this conditional mean: \[
 \hat{f_i} = \hat{\mathbf{L}}^T\mathbf{S}^{-1}(x_i-\bar{x})
@@ -1128,8 +1127,8 @@ and the elliptic contour plots have a nice circular shape.
 Let's first of all compute the sample means of the two factor scores:
 
 \begin{verbatim}
-                x_bar        y_bar
-Factor1 -6.795331e-18 3.298966e-18
+                     x_bar        y_bar
+Grant-White: -6.795331e-18 3.298966e-18
 \end{verbatim}
 
 Before plotting the data, we also notice that together with the
@@ -1446,9 +1445,9 @@ between the interpretations of the common factors based on the
 Grant-White students data and on the Pasteur student data. This is
 reasonable, as we expect that the underlying skills necessary to
 complete the proposed attitudinal tests were the same - regardless of
-the school attended by the students. To tell the truth, this concordance
-among the results was also desirable as it can be used to assess the
-``stability'' of our analysis and interpretation.
+the school attended by the students. Moreover, this concordance among
+the results was desirable as it can be used to assess the ``stability''
+of our analysis and interpretation.
 
 \hypertarget{make-a-scatterplot-of-the-first-two-factor-scores-from-the-rotated-mlfa-solution-for-each-school.-comment.}{%
 \subsubsection{5. Make a scatterplot of the first two factor scores from
@@ -1480,8 +1479,9 @@ circular shape and centered in the origin of the axes.
 \end{verbatim}
 
 \begin{verbatim}
-               x_bar         y_bar
-Factor1 1.260677e-16 -9.167346e-17
+                     x_bar         y_bar
+Grant-White: -6.795331e-18  3.298966e-18
+Pasteur:      1.260677e-16 -9.167346e-17
 \end{verbatim}
 
 \includegraphics{ProblemSet2_files/figure-pdf/unnamed-chunk-57-1.pdf}
@@ -1897,9 +1897,8 @@ used to train it (so it suffers a form of ``overfitting'' to the data).
 The leave-one-out CV procedure instead tests models, trained on all data
 minus a single observation, on that observation and averages the error
 rates obtained by repeating this procedure on each observation. It is a
-slightly more realistic measure of how well the model would fare with
-unseen data (and thus tends to give a less-optimistic approximation of
-the AER).\\
+more realistic measure of how well the model would fare with unseen data
+(and thus tends to give a less-optimistic approximation of the AER).\\
 Still, the difference of the rates is not very appreciable. This might
 have to do with the fact that leaving a single handwritten digit out has
 only a marginal impact on the predictive capability of that digit as the
@@ -1976,9 +1975,9 @@ difference.
 
 \begin{verbatim}
   rank training.errors arithmetic.mean.of.errors misclassification.rate
-1    1       0.5439432                 0.5491300              0.5491266
+1    1       0.5439368                 0.5491300              0.5491266
 2    2       0.3234974                 0.3244313              0.3244178
-3    3       0.2513689                 0.2530075              0.2530022
+3    3       0.2513710                 0.2530075              0.2530022
 4    4       0.2138342                 0.2145289              0.2145197
 5    5       0.1637406                 0.1651352              0.1651201
 6    6       0.1399517                 0.1416476              0.1416485
@@ -2002,11 +2001,11 @@ extents. We could make a case for keeping only 6 dimensions if we
 focused on dimensionality reduction, following a sort of ``elbow rule''.
 Overall, the most balanced decision is to keep all 9 dimensions.
 
-\hypertarget{optional-find-a-classification-rule-that-improves-on-the-cv-error-rate-estimates-found-before.-feel-free-to-use-any-classification-method-even-on-not-covered-in-class.}{%
+\hypertarget{optional-find-a-classification-rule-that-improves-on-the-cv-error-rate-estimates-found-before.-feel-free-to-use-any-classification-method-even-one-not-covered-in-class.}{%
 \subsubsection{\texorpdfstring{5. \((optional)\) Find a classification
 rule that improves on the CV error rate estimates found before. Feel
-free to use any classification method, even on not covered in
-class.}{5. (optional) Find a classification rule that improves on the CV error rate estimates found before. Feel free to use any classification method, even on not covered in class.}}\label{optional-find-a-classification-rule-that-improves-on-the-cv-error-rate-estimates-found-before.-feel-free-to-use-any-classification-method-even-on-not-covered-in-class.}}
+free to use any classification method, even one not covered in
+class.}{5. (optional) Find a classification rule that improves on the CV error rate estimates found before. Feel free to use any classification method, even one not covered in class.}}\label{optional-find-a-classification-rule-that-improves-on-the-cv-error-rate-estimates-found-before.-feel-free-to-use-any-classification-method-even-one-not-covered-in-class.}}
 
 Since the assumption of equal covariance matrix across classes seems
 stretched, our first thought is simply to try Quadratic Discriminant
@@ -2015,9 +2014,9 @@ improvement, since it would still rely on the assumption of Gaussian
 conditional densities.
 
 QDA is, however, impossible to implement in this case. Indeed, QDA
-requires the inversion of all the covariance matrices in its procedure,
-not only of the pooled one, and digit 4 doesn't have a full rank
-covariance matrix (as previously discussed).
+requires invertibility of all the sample covariance matrices in its
+procedure, not only of the pooled one, and digit \emph{4} doesn't have a
+full rank covariance matrix (as previously discussed).
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -2031,7 +2030,7 @@ Error in qda.default(x, grouping, ...): carenza di rango nel gruppo 4
 
 Before switching to another framework, we could try and implement a
 similar procedure that ignores the problem of the singularity of the
-covariance matrix of digit \(4\): Regularized Discriminant Analysis.
+covariance matrix of digit \emph{4}: Regularized Discriminant Analysis.
 This technique is in between LDA and QDA, in the sense that it relies on
 class covariance matrix estimates that are given by a linear combination
 of the pooled covariance matrix and of the sample covariance matrix of
@@ -2051,7 +2050,7 @@ previous ones.
 
 \begin{verbatim}
       APER   crossval 
-0.01428311 0.01528969 
+0.01410116 0.01527782 
 \end{verbatim}
 
 Here ``APER'' (apparent error rate) corresponds to what we called
@@ -2068,13 +2067,6 @@ outcomes). Indeed, the strategy is almost identical to the one of LDA
 weaker assumptions of logistic regression (the log-odds of each class is
 assumed to be a linear combination of the explanatory variables). We
 repeat k-fold CV on this model using the same criterion above.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{data.frame}\NormalTok{(}\StringTok{"Arithmetic average of errors"}\OtherTok{=}\NormalTok{mlog.err, }
-           \StringTok{"Misclassification rate"}\OtherTok{=}\NormalTok{ mlog.mis)}
-\end{Highlighting}
-\end{Shaded}
 
 \begin{verbatim}
   Arithmetic.average.of.errors Misclassification.rate
@@ -2127,13 +2119,11 @@ At last, we mention that we also tried to use the more ``naive'' method
 of the k-Nearest Neighbors, which yielded surprisingly good results for
 small values of k. We show the error rates for k from \(1\) to \(10\),
 but up to \(100\) they only increased along with k, so the optimal
-choice appear to be either \(1\) or \(3\). This behavior is quite
-unexpected: the error rate is usually an increasing function of k when
-computed on training data, yet it still happens the same despite testing
-the model on test data - not used for training - via cross-validation.\\
-In terms of raw error rates, k-NN should be our best choice. However,
-due to its instability, we should probably opt for Random Forests
-regardless.
+choice appear to be either \(1\) or \(3\). This behavior was not
+completely predictable: the error rate is usually an increasing function
+of k when computed on training data, yet it still happens the same
+despite testing the model on test data - not used for training - via
+cross-validation.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -2157,9 +2147,6 @@ regardless.
 \NormalTok{  knn.err[aux]}\OtherTok{=}\NormalTok{knn.err\_tmp}\SpecialCharTok{/}\NormalTok{k\_f}
 \NormalTok{  knn.mis[aux]}\OtherTok{=}\NormalTok{knn.mis\_tmp}\SpecialCharTok{/}\NormalTok{n}
 \NormalTok{\}}
-
-\FunctionTok{data.frame}\NormalTok{(}\StringTok{"k"}\OtherTok{=}\DecValTok{1}\SpecialCharTok{:}\NormalTok{aux, }\StringTok{"Arithmetic average of errors"} \OtherTok{=}\NormalTok{ knn.err,}
-\StringTok{"Misclassification rate"} \OtherTok{=}\NormalTok{ knn.mis) }
 \end{Highlighting}
 \end{Shaded}
 
@@ -2176,5 +2163,11 @@ regardless.
 9   9                  0.009466566            0.009461426
 10 10                  0.010469572            0.010462154
 \end{verbatim}
+
+In terms of raw error rates, k-NN should be our best choice. However,
+due to its instability, we should probably opt for Random Forests
+regardless. \textbackslash begin\{align\}
+
+
 
 \end{document}

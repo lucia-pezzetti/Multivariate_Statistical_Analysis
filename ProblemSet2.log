@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.8.28) (preloaded format=pdflatex 2022.10.15)  15 MAY 2023 22:27
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.8.28) (preloaded format=pdflatex 2022.10.15)  16 MAY 2023 12:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1218,22 +1218,22 @@ File: ProblemSet2_files/figure-pdf/unnamed-chunk-7-1.pdf Graphic file (type pdf
 )
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-7-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-7-1.pdf  us
-ed on input line 273.
+ed on input line 272.
 (pdftex.def)             Requested size: 446.75931pt x 446.75931pt.
 
-Overfull \hbox (10.94926pt too wide) in paragraph at lines 273--274
+Overfull \hbox (10.94926pt too wide) in paragraph at lines 272--273
 [][] 
  []
 
 [2] [3 <./ProblemSet2_files/figure-pdf/unnamed-chunk-7-1.pdf>]
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <10.95> on input line 302.
+(Font)              <10.95> on input line 301.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <8> on input line 302.
+(Font)              <8> on input line 301.
 LaTeX Font Info:    External font `lmex10' loaded for size
-(Font)              <6> on input line 302.
+(Font)              <6> on input line 301.
 LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 
-313.
+312.
 
 (C:\Users\feder\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmtt.fd
 File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
@@ -1244,7 +1244,7 @@ File: ProblemSet2_files/figure-pdf/unnamed-chunk-9-1.pdf Graphic file (type pdf
 )
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-9-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-9-1.pdf  us
-ed on input line 317.
+ed on input line 316.
 (pdftex.def)             Requested size: 397.49008pt x 252.94823pt.
  [4 <./ProblemSet2_files/figure-pdf/unnamed-chunk-9-1.pdf>]
 <ProblemSet2_files/figure-pdf/unnamed-chunk-10-1.pdf, id=50, 397.485pt x 252.94
@@ -1253,7 +1253,7 @@ File: ProblemSet2_files/figure-pdf/unnamed-chunk-10-1.pdf Graphic file (type pd
 f)
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-10-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-10-1.pdf  u
-sed on input line 330.
+sed on input line 329.
 (pdftex.def)             Requested size: 397.49008pt x 252.94823pt.
 <ProblemSet2_files/figure-pdf/unnamed-chunk-11-1.pdf, id=51, 397.485pt x 252.94
 5pt>
@@ -1261,65 +1261,65 @@ File: ProblemSet2_files/figure-pdf/unnamed-chunk-11-1.pdf Graphic file (type pd
 f)
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-11-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-11-1.pdf  u
-sed on input line 337.
+sed on input line 336.
 (pdftex.def)             Requested size: 397.49008pt x 252.94823pt.
  [5 <./ProblemSet2_files/figure-pdf/unnamed-chunk-10-1.pdf>] [6 <./ProblemSet2_
 files/figure-pdf/unnamed-chunk-11-1.pdf>] [7] [8] [9]
 LaTeX Font Info:    Trying to load font information for TS1+lmr on input line 5
-83.
+82.
 
 (C:\Users\feder\AppData\Local\Programs\MiKTeX\tex/latex/lm\ts1lmr.fd
 File: ts1lmr.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 ) [10]
 [11] [12] [13] [14] [15] [16] [17] [18] [19]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-35-1.pdf, id=139, 289.08pt x 289.08
+<ProblemSet2_files/figure-pdf/unnamed-chunk-35-1.pdf, id=138, 289.08pt x 289.08
 pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-35-1.pdf Graphic file (type pd
 f)
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-35-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-35-1.pdf  u
-sed on input line 1104.
+sed on input line 1103.
 (pdftex.def)             Requested size: 289.09251pt x 289.09251pt.
  [20 <./ProblemSet2_files/figure-pdf/unnamed-chunk-35-1.pdf>]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-38-1.pdf, id=150, 578.16pt x 578.16
+<ProblemSet2_files/figure-pdf/unnamed-chunk-38-1.pdf, id=149, 578.16pt x 578.16
 pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-38-1.pdf Graphic file (type pd
 f)
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-38-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-38-1.pdf  u
-sed on input line 1150.
+sed on input line 1149.
 (pdftex.def)             Requested size: 446.75488pt x 446.75488pt.
 
-Overfull \hbox (10.94484pt too wide) in paragraph at lines 1150--1151
+Overfull \hbox (10.94484pt too wide) in paragraph at lines 1149--1150
 [][] 
  []
 
 [21] [22 <./ProblemSet2_files/figure-pdf/unnamed-chunk-38-1.pdf>]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-41-1.pdf, id=165, 939.51pt x 939.51
+<ProblemSet2_files/figure-pdf/unnamed-chunk-41-1.pdf, id=164, 939.51pt x 939.51
 pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-41-1.pdf Graphic file (type pd
 f)
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-41-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-41-1.pdf  u
-sed on input line 1179.
+sed on input line 1178.
 (pdftex.def)             Requested size: 446.75931pt x 446.75931pt.
 
-Overfull \hbox (10.94926pt too wide) in paragraph at lines 1179--1180
+Overfull \hbox (10.94926pt too wide) in paragraph at lines 1178--1179
 [][] 
  []
 
 [23] [24 <./ProblemSet2_files/figure-pdf/unnamed-chunk-41-1.pdf>]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-42-1.pdf, id=182, 397.485pt x 252.9
+<ProblemSet2_files/figure-pdf/unnamed-chunk-42-1.pdf, id=181, 397.485pt x 252.9
 45pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-42-1.pdf Graphic file (type pd
 f)
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-42-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-42-1.pdf  u
-sed on input line 1196.
+sed on input line 1195.
 (pdftex.def)             Requested size: 397.49008pt x 252.94823pt.
  [25 <./ProblemSet2_files/figure-pdf/unnamed-chunk-42-1.pdf>] [26] [27] [28] [2
 9]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-57-1.pdf, id=209, 1156.32pt x 578.1
+<ProblemSet2_files/figure-pdf/unnamed-chunk-57-1.pdf, id=208, 1156.32pt x 578.1
 6pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-57-1.pdf Graphic file (type pd
 f)
@@ -1333,7 +1333,7 @@ Overfull \hbox (10.93604pt too wide) in paragraph at lines 1487--1488
  []
 
 [30] [31 <./ProblemSet2_files/figure-pdf/unnamed-chunk-57-1.pdf>]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-62-1.pdf, id=230, 1445.4pt x 1445.4
+<ProblemSet2_files/figure-pdf/unnamed-chunk-62-1.pdf, id=229, 1445.4pt x 1445.4
 pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-62-1.pdf Graphic file (type pd
 f)
@@ -1347,7 +1347,7 @@ Overfull \hbox (10.93604pt too wide) in paragraph at lines 1546--1547
  []
 
 [32]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-63-1.pdf, id=235, 397.485pt x 252.9
+<ProblemSet2_files/figure-pdf/unnamed-chunk-63-1.pdf, id=234, 397.485pt x 252.9
 45pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-63-1.pdf Graphic file (type pd
 f)
@@ -1423,7 +1423,7 @@ Overfull \hbox (1.64117pt too wide) in paragraph at lines 1665--1665
  []
 
 [36]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-68-1.pdf, id=265, 1300.86pt x 867.2
+<ProblemSet2_files/figure-pdf/unnamed-chunk-68-1.pdf, id=264, 1300.86pt x 867.2
 4pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-68-1.pdf Graphic file (type pd
 f)
@@ -1437,7 +1437,7 @@ Overfull \hbox (10.94264pt too wide) in paragraph at lines 1724--1725
  []
 
 [37] [38 <./ProblemSet2_files/figure-pdf/unnamed-chunk-68-1.pdf>] [39]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-71-1.pdf, id=291, 397.485pt x 252.9
+<ProblemSet2_files/figure-pdf/unnamed-chunk-71-1.pdf, id=290, 397.485pt x 252.9
 45pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-71-1.pdf Graphic file (type pd
 f)
@@ -1447,28 +1447,28 @@ sed on input line 1814.
 (pdftex.def)             Requested size: 397.49008pt x 252.94823pt.
  [40 <./ProblemSet2_files/figure-pdf/unnamed-chunk-71-1.pdf>]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <10.95> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 1915.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 1914.
  [41] [42]
-<ProblemSet2_files/figure-pdf/unnamed-chunk-77-1.pdf, id=316, 1300.86pt x 867.2
+<ProblemSet2_files/figure-pdf/unnamed-chunk-77-1.pdf, id=315, 1300.86pt x 867.2
 4pt>
 File: ProblemSet2_files/figure-pdf/unnamed-chunk-77-1.pdf Graphic file (type pd
 f)
 <use ProblemSet2_files/figure-pdf/unnamed-chunk-77-1.pdf>
 Package pdftex.def Info: ProblemSet2_files/figure-pdf/unnamed-chunk-77-1.pdf  u
-sed on input line 1996.
+sed on input line 1995.
 (pdftex.def)             Requested size: 446.75269pt x 297.83513pt.
 
-Overfull \hbox (10.94264pt too wide) in paragraph at lines 1996--1997
+Overfull \hbox (10.94264pt too wide) in paragraph at lines 1995--1996
 [][] 
  []
 
 [43] [44 <./ProblemSet2_files/figure-pdf/unnamed-chunk-77-1.pdf>] [45] [46]
 [47] (ProblemSet2.aux) ) 
 Here is how much of TeX's memory you used:
- 33103 strings out of 475385
- 680839 string characters out of 2776906
+ 33102 strings out of 475385
+ 680825 string characters out of 2776906
  1196180 words of memory out of 3000000
- 53668 multiletter control sequences out of 15000+600000
+ 53667 multiletter control sequences out of 15000+600000
  533658 words of font info for 166 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  108i,9n,106p,10608b,1033s stack positions out of 10000i,1000n,20000p,200000b,80000s
@@ -1489,11 +1489,10 @@ sbx10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/l
 msy10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/l
 msy8.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lm
 tk10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lm
-tt10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfo
-nts/symbols/msbm10.pfb>
-Output written on ProblemSet2.pdf (47 pages, 1823863 bytes).
+tt10.pfb>
+Output written on ProblemSet2.pdf (47 pages, 1820609 bytes).
 PDF statistics:
- 470 PDF objects out of 1000 (max. 8388607)
+ 465 PDF objects out of 1000 (max. 8388607)
  86 named destinations out of 1000 (max. 500000)
  34995 words of extra memory for PDF output out of 35830 (max. 10000000)
 

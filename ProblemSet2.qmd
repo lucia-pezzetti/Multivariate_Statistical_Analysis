@@ -57,7 +57,7 @@ var.meaning <- as.data.frame(t(rbind(var, meaning)))
 
 ### 1. Use the Grant-White students data. Obtain the maximum likelihood solution for m = 5 and m = 6 factors and compute the proportion of total sample variance due to each factor. List the specific variances, and assess the accuracy of the approximation of the correlation matrix. Compare the results. Which choice of m do you prefer? Why?
 
-First of all we start by filtering the data set in order to retain only those observations corresponding to students from the Grant-White School. Once we have done so, we can remove the variable `group` from the data set we are going to use in the analysis. Together with group we also discard the variable `Case`, `Sex` and `Age` in order to retain only the variables regarding the psychological tests. As a side-note we also observe that the total number of considered cases is 350 whilst we only have 301 observations, suggesting that some students did not attend the test or maybe responded only partially.
+First of all we start by filtering the data set in order to retain only those observations corresponding to students from the Grant-White School. Once we have done so, we can remove the variable `group` from the data set we are going to use in the analysis. Together with `group` we also discard the variable `Case`, `Sex` and `Age` in order to retain only the variables regarding the psychological tests. As a side-note we also observe that the total number of considered cases is 350 whilst we only have 301 observations, suggesting that some students did not attend the test or maybe responded only partially.
 
 ```{r}
 Grant_White <- psych %>% dplyr::filter(group == "GRANT") %>%
@@ -68,14 +68,13 @@ The aim of the Factor Analysis is, in essence, to describe - if possible - the c
 
 Looking at the `psych` data set it is conceivable that the results of the "ability" tests performed are just different measures of fewer broad domains like for example verbal or spatial abilities, memory or mathematical deduction.
 
-We start our analysis by considering the correlation matrix:
+We start our analysis by considering the correlation matrix. It is helpful to plot it:
 
 ```{r, echo=FALSE}
 R <- cor(Grant_White)
 #testRes = cor.mtest(Grant_White, conf.level = 0.95)
 ```
 
-It is helpful to plot it:
 
 ```{r, fig.width = 13, fig.height = 13, echo=FALSE}
 corrplot(R, method = 'color', type = 'lower', insig='blank',
@@ -84,7 +83,7 @@ corrplot(R, method = 'color', type = 'lower', insig='blank',
 
 Looking at the plot of the correlations, we can immediately observe the presence of some groups of quite significantly correlated variables. The most evident one is composed by the variables `V5`, `V6`, `V7`, `V8` and `V9`. Looking at the type of the tests they represent, we can observe that all those variables are related to a linguistic or verbal area, hence we do expect them to be highly correlated, and we may also expect them to be explained by a common factor.
 
-With a slightly greater level of uncertainty, we can also identify the group of the variables `V10`, `V11`, `V12` and `V13`. In this case the relationship among the variables is less clear, since we do not know how the tests have been performed and what they aim to measure. Nevertheless we may think to coding, additions, counting dots and recognition of capital letters as quite simple tasks and so we may expect that the students who score higher in these tests may be the most precise or focused. This may explain why the results of these tests are quite high correlated.
+With a slightly greater level of uncertainty, we can also identify the group of the variables `V10`, `V11`, `V12` and `V13`. In this case the relationship among the variables is less clear, since we do not know how the tests have been performed and what they aim to measure. Nevertheless we may think to coding, additions, counting dots and recognition of capital letters as quite simple tasks and so we may expect that the students who score higher in these tests may be the most precise or focused. This may explain why the results of these tests are quite highly correlated.
 
 Finally, we also mention the group of the variables `V20`, `V21`, `V22`, `V23` and `V9` - all quite related to some logical or problem solving skills.
 
@@ -231,7 +230,7 @@ Now, in a real-life study, there are several things we can do to try improve the
 
 -   removing the outliers from the data set and re-estimate the maximum likelihood solution;
 -   using different methods to perform the factor analysis - for example a possibility is to use the principal component approach;
--   finally,we may consider alternative analyses - such as principal component analysis, cluster analysis, or discriminant analysis.
+-   finally, we may consider alternative analyses - such as principal component analysis, cluster analysis, or discriminant analysis.
 
 We will not try any of these improvement, but - for the sake of the exercise - we will proceed in the factor analysis taking this issue into account.
 
@@ -294,7 +293,7 @@ $$
 \end{aligned}
 $$
 
-resulting from the approximation of $\mathbf{R}$ via the simpler structure $\hat{\mathbf{L}}\hat{\mathbf{L}}^T - \hat{\mathbf{\Psi}}$. We can then summarize how far from the perfect approximation we are by computing its Frobenius norm.
+resulting from the approximation of $\mathbf{R}$ via the simpler structure $\hat{\mathbf{L}}\hat{\mathbf{L}}^T + \hat{\mathbf{\Psi}}$. We can then summarize how far from the perfect approximation we are by computing its Frobenius norm.
 
 ```{r}
 Psi.5.ml <- diag(psych.5fa.ml$uniquenesses, p)
@@ -313,7 +312,7 @@ as.data.frame(round(Frob.res, 3))
 
 The obtained norms - for the choice of 5 and 6 factors - are in both cases quite high, even if adding the sixth factor slightly reduces it. This may again be explained by keeping into account the fact that in both cases the total cumulative variance explained by the factors is quite small - 0.503 and 0.525 respectively. Therefore, we can conclude that, despite the improvement in the approximation related to the inclusion of the sixth factor, in both cases the approximation of the correlation matrix is not so satisfactory.
 
-Overall, the comparison seems to suggests that neither the 5 factors model nor the 6 factors one are good fit for the data. Anyway, if we stick to the problem of deciding how many factors to retain, the choice of 5 common factors may appear to be the most preferable one. Indeed, as it emerges from all the comment above, the improvements related to the use of six factors are not sufficiently noteworthy.
+Overall, the comparison seems to suggests that neither the 5 factors model nor the 6 factors one are good fit for the data. Anyway, if we stick to the problem of deciding how many factors to retain, the choice of 5 common factors may appear to be the preferable one. Indeed, as it emerges from all the comments above, the improvements related to the use of six factors are not sufficiently noteworthy.
 
 ### 2. Give an interpretation to the common factors in the $m = 5$ solution with varimax rotation
 
@@ -458,7 +457,7 @@ $$
 $$
 where we suppose that both the factors and the errors are jointly normally distributed and that both the common factors and the errors are uncorrelated within each other. Under these assumption we know that the conditional distribution of $F|X$ is again Gaussian, with conditional mean given by 
 $$
- \mathbb{L}^T\mathbf{\Sigma}^{-1}(X-\mu) = \mathbf{L}^T(\mathbf{LL}^T -\mathbf{\Psi})^{-1}(X-\mu)
+ \mathbf{L}^T\mathbf{\Sigma}^{-1}(X-\mu) = \mathbf{L}^T(\mathbf{LL}^T -\mathbf{\Psi})^{-1}(X-\mu)
 $$
 Given so, a natural estimate for $f_i$ is simply the corresponding estimate of this conditional mean: 
 $$
@@ -500,7 +499,7 @@ Let's first of all compute the sample means of the two factor scores:
 
 ```{r, echo=FALSE}
 means.hat <- colMeans(scores_GrWh[,c(1,2)])
-means.hat <- data.frame("x_bar" = means.hat[1], "y_bar" = means.hat[2])
+means.hat <- data.frame("x_bar" = means.hat[1], "y_bar" = means.hat[2], row.names="Grant-White:")
 means.hat
 ```
 
@@ -721,7 +720,7 @@ We can see that for `V3` and `V18` the grouping appears to reasonably holds and 
 
 Nevertheless we may simply address this problems referring to the transversal competences requested by the corresponding tests. The above interpretation may still be considered quite satisfactory.
 
-To conclude, we can say that we have found quite a good agreement between the interpretations of the common factors based on the Grant-White students data and on the Pasteur student data. This is reasonable, as we expect that the underlying skills necessary to complete the proposed attitudinal tests were the same - regardless of the school attended by the students. To tell the truth, this concordance among the results was also desirable as it can be used to assess the "stability" of our analysis and interpretation.
+To conclude, we can say that we have found quite a good agreement between the interpretations of the common factors based on the Grant-White students data and on the Pasteur student data. This is reasonable, as we expect that the underlying skills necessary to complete the proposed attitudinal tests were the same - regardless of the school attended by the students. Moreover, this concordance among the results was desirable as it can be used to assess the "stability" of our analysis and interpretation.
 
 ### 5. Make a scatterplot of the first two factor scores from the rotated MLFA solution for each school. Comment.
 
@@ -740,9 +739,9 @@ data.frame("correlation" = cor(scores_Past[,1], scores_Past[,2]))
 ```
 
 ```{r, echo=FALSE}
-means.hat <- colMeans(scores_Past[,c(1,2)])
-means.hat <- data.frame("x_bar" = means.hat[1], "y_bar" = means.hat[2])
-means.hat
+means.hat1 <- colMeans(scores_Past[,c(1,2)])
+means.hat1 <- data.frame("x_bar" = rbind(means.hat[1], means.hat1[1]), "y_bar" = rbind(means.hat[2], means.hat1[2]), row.names=c("Grant-White:","Pasteur:"))
+means.hat1
 ```
 
 ```{r, fig.width=16, fig.height=8, echo=FALSE}
@@ -1009,7 +1008,7 @@ CV.err<-1-mean(lda.fitCV$class==pendigits$digit)
 data.frame("training error"=training.err, "CV error" = CV.err)
 ```
 
-As we can see, the test error rate achieved via leave-one-out cross validation turns out to be bigger than the training error. This is to be expected: the training error is a very over-confident estimate of the Actual Error Rates, because it tests its performance on the same data used to train it (so it suffers a form of "overfitting" to the data). The leave-one-out CV procedure instead tests models, trained on all data minus a single observation, on that observation and averages the error rates obtained by repeating this procedure on each observation. It is a slightly more realistic measure of how well the model would fare with unseen data (and thus tends to give a less-optimistic approximation of the AER).\
+As we can see, the test error rate achieved via leave-one-out cross validation turns out to be bigger than the training error. This is to be expected: the training error is a very over-confident estimate of the Actual Error Rates, because it tests its performance on the same data used to train it (so it suffers a form of "overfitting" to the data). The leave-one-out CV procedure instead tests models, trained on all data minus a single observation, on that observation and averages the error rates obtained by repeating this procedure on each observation. It is a more realistic measure of how well the model would fare with unseen data (and thus tends to give a less-optimistic approximation of the AER).\
 Still, the difference of the rates is not very appreciable. This might have to do with the fact that leaving a single handwritten digit out has only a marginal impact on the predictive capability of that digit as the model is trained on (around) 249 other digits from the same writer - plus the ones of all other 33 authors.
 
 ### 4. Compute the $44$-fold cross validation error for each reduced-rank LDA classifier, including full-rank LDA, by using the partition of the observation provided by the variable `groupCV` below. Plot the error curve against the number of discriminant variables. What classifier do you prefer? Comment.
@@ -1075,17 +1074,17 @@ ggplot(dataf, aes(x=rank, y=value, label = as.character(round(value, 4)), color 
 
 We can see that the cross validation error keeps improving as the number of dimensions grows, which suggests that all linear discriminant directions matter for classification purposes - albeit to different extents. We could make a case for keeping only 6 dimensions if we focused on dimensionality reduction, following a sort of "elbow rule". Overall, the most balanced decision is to keep all 9 dimensions.
 
-### 5. $(optional)$ Find a classification rule that improves on the CV error rate estimates found before. Feel free to use any classification method, even on not covered in class.
+### 5. $(optional)$ Find a classification rule that improves on the CV error rate estimates found before. Feel free to use any classification method, even one not covered in class.
 
 Since the assumption of equal covariance matrix across classes seems stretched, our first thought is simply to try Quadratic Discriminant Analysis, which doesn't require it. Note that we wouldn't expect a huge improvement, since it would still rely on the assumption of Gaussian conditional densities.
 
-QDA is, however, impossible to implement in this case. Indeed, QDA requires the inversion of all the covariance matrices in its procedure, not only of the pooled one, and digit 4 doesn't have a full rank covariance matrix (as previously discussed).
+QDA is, however, impossible to implement in this case. Indeed, QDA requires invertibility of all the sample covariance matrices in its procedure, not only of the pooled one, and digit *4* doesn't have a full rank covariance matrix (as previously discussed).
 
 ```{r, error=TRUE}
 qda.fit=qda(digit~.,data=pendigits, CV=TRUE)
 ```
 
-Before switching to another framework, we could try and implement a similar procedure that ignores the problem of the singularity of the covariance matrix of digit $4$: Regularized Discriminant Analysis. This technique is in between LDA and QDA, in the sense that it relies on class covariance matrix estimates that are given by a linear combination of the pooled covariance matrix and of the sample covariance matrix of the considered class. The coefficients of the combinations are estimated as to minimize the error rates by default. Quite unexpectedly, the improvements achieved via a 44-fold Cross Validation RDA on the LDA error rates are astounding - where we used again a 44-fold cross validation technique to make error estimates more comparable with the previous ones.
+Before switching to another framework, we could try and implement a similar procedure that ignores the problem of the singularity of the covariance matrix of digit *4*: Regularized Discriminant Analysis. This technique is in between LDA and QDA, in the sense that it relies on class covariance matrix estimates that are given by a linear combination of the pooled covariance matrix and of the sample covariance matrix of the considered class. The coefficients of the combinations are estimated as to minimize the error rates by default. Quite unexpectedly, the improvements achieved via a 44-fold Cross Validation RDA on the LDA error rates are astounding - where we used again a 44-fold cross validation technique to make error estimates more comparable with the previous ones.
 
 ```{r}
 rda.fit=rda(digit~.,data=pendigits, crossval=TRUE, fold=44)
@@ -1096,7 +1095,7 @@ Here "APER" (apparent error rate) corresponds to what we called "total misclassi
 
 Since relying less on the assumptions of LDA provides us an improved outcome, the next technique we implement is Multinomial Logistic Regression (a generalisation of the standard Binomial Logistic Regression for categorical variables with more than 2 possible outcomes). Indeed, the strategy is almost identical to the one of LDA (maximization of the discriminant functions), but it relies on the weaker assumptions of logistic regression (the log-odds of each class is assumed to be a linear combination of the explanatory variables). We repeat k-fold CV on this model using the same criterion above.
 
-```{r, include=FALSE}
+```{r, results=FALSE}
 mlog.err=0
 mlog.mis=0
 for(i in 1:k_f){
@@ -1113,10 +1112,9 @@ for(i in 1:k_f){
 mlog.err=mlog.err/k_f #error by means of the errors
 
 mlog.mis=mlog.mis/n
-
 ```
 
-```{r}
+```{r, echo=FALSE}
 data.frame("Arithmetic average of errors"=mlog.err, 
            "Misclassification rate"= mlog.mis)
 ```
@@ -1149,8 +1147,7 @@ data.frame("Arithmetic average of errors" = rfor.err,
 
 Random forests perform better than all previously considered methods.
 
-At last, we mention that we also tried to use the more "naive" method of the k-Nearest Neighbors, which yielded surprisingly good results for small values of k. We show the error rates for k from $1$ to $10$, but up to $100$ they only increased along with k, so the optimal choice appear to be either $1$ or $3$. This behavior is quite unexpected: the error rate is usually an increasing function of k when computed on training data, yet it still happens the same despite testing the model on test data - not used for training - via cross-validation.  
-In terms of raw error rates, k-NN should be our best choice. However, due to its instability, we should probably opt for Random Forests regardless.
+At last, we mention that we also tried to use the more "naive" method of the k-Nearest Neighbors, which yielded surprisingly good results for small values of k. We show the error rates for k from $1$ to $10$, but up to $100$ they only increased along with k, so the optimal choice appear to be either $1$ or $3$. This behavior was not completely predictable: the error rate is usually an increasing function of k when computed on training data, yet it still happens the same despite testing the model on test data - not used for training - via cross-validation. 
 
 ```{r}
 set.seed(1)
@@ -1173,7 +1170,11 @@ for(aux in 1:10){
   knn.err[aux]=knn.err_tmp/k_f
   knn.mis[aux]=knn.mis_tmp/n
 }
+```
 
+```{r, echo=FALSE}
 data.frame("k"=1:aux, "Arithmetic average of errors" = knn.err,
 "Misclassification rate" = knn.mis) 
 ```
+
+In terms of raw error rates, k-NN should be our best choice. However, due to its instability, we should probably opt for Random Forests regardless.
