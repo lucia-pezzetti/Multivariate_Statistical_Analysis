@@ -189,7 +189,7 @@
 
 \begin{document}
 \maketitle
-\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[interior hidden, boxrule=0pt, sharp corners, borderline west={3pt}{0pt}{shadecolor}, frame hidden, breakable, enhanced]}{\end{tcolorbox}}\fi
+\ifdefined\Shaded\renewenvironment{Shaded}{\begin{tcolorbox}[enhanced, borderline west={3pt}{0pt}{shadecolor}, sharp corners, breakable, interior hidden, frame hidden, boxrule=0pt]}{\end{tcolorbox}}\fi
 
 \hypertarget{exercise-1}{%
 \subsection{Exercise 1}\label{exercise-1}}
@@ -1054,7 +1054,7 @@ error terms \(\epsilon_i\) - outnumbers the observed \(x_i\).
 
 One of the most used approaches advanced to overcome this problem is the
 \emph{regression method}. The idea is the following: consider the
-baseline equation of the factor model 
+baseline equation of the factor model
 \begin{align}
   X - \mu = \mathbf{L}F + \epsilon
   \end{align}
@@ -1975,15 +1975,15 @@ difference.
 
 \begin{verbatim}
   rank training.errors arithmetic.mean.of.errors misclassification.rate
-1    1       0.5439368                 0.5491300              0.5491266
+1    1       0.5439347                 0.5491300              0.5491266
 2    2       0.3234974                 0.3244313              0.3244178
 3    3       0.2513710                 0.2530075              0.2530022
 4    4       0.2138342                 0.2145289              0.2145197
 5    5       0.1637406                 0.1651352              0.1651201
 6    6       0.1399517                 0.1416476              0.1416485
 7    7       0.1329677                 0.1347355              0.1347344
-8    8       0.1245324                 0.1259144              0.1259098
-9    9       0.1229118                 0.1242810              0.1242722
+8    8       0.1245303                 0.1259144              0.1259098
+9    9       0.1229097                 0.1242810              0.1242722
 \end{verbatim}
 
 As expected, the differences are hardly noticeable.
@@ -2050,7 +2050,7 @@ previous ones.
 
 \begin{verbatim}
       APER   crossval 
-0.01410116 0.01527782 
+0.01410116 0.01538057 
 \end{verbatim}
 
 Here ``APER'' (apparent error rate) corresponds to what we called
@@ -2068,6 +2068,27 @@ weaker assumptions of logistic regression (the log-odds of each class is
 assumed to be a linear combination of the explanatory variables). We
 repeat k-fold CV on this model using the same criterion above.
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mlog.err}\OtherTok{=}\DecValTok{0}
+\NormalTok{mlog.mis}\OtherTok{=}\DecValTok{0}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{k\_f)\{}
+  \FunctionTok{set.seed}\NormalTok{(i) }\CommentTok{\#random initial parameters, different for each cycle}
+\NormalTok{  train }\OtherTok{=} \SpecialCharTok{!}\NormalTok{(groupCV}\SpecialCharTok{==}\NormalTok{i)}
+\NormalTok{  train.data}\OtherTok{=}\NormalTok{pendigits[train,]}
+\NormalTok{  test.data}\OtherTok{=}\NormalTok{pendigits[}\SpecialCharTok{!}\NormalTok{train,]}
+\NormalTok{  mlog.model }\OtherTok{=}\NormalTok{ nnet}\SpecialCharTok{::}\FunctionTok{multinom}\NormalTok{(digit }\SpecialCharTok{\textasciitilde{}}\NormalTok{., }\AttributeTok{data =}\NormalTok{ train.data)}
+\NormalTok{  pred.classes }\OtherTok{=}\NormalTok{ mlog.model }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{predict}\NormalTok{(test.data)}
+\NormalTok{  mlog.err}\OtherTok{=}\NormalTok{mlog.err}\SpecialCharTok{+}\DecValTok{1}\SpecialCharTok{{-}}\FunctionTok{mean}\NormalTok{(pred.classes }\SpecialCharTok{==}\NormalTok{ test.data}\SpecialCharTok{$}\NormalTok{digit)}
+\NormalTok{  mlog.mis}\OtherTok{=}\NormalTok{mlog.mis}\SpecialCharTok{+}\FunctionTok{sum}\NormalTok{(}\SpecialCharTok{!}\NormalTok{train)}\SpecialCharTok{{-}}\FunctionTok{sum}\NormalTok{(pred.classes }\SpecialCharTok{==}\NormalTok{ test.data}\SpecialCharTok{$}\NormalTok{digit) }
+  \CommentTok{\#number of misclassifications as the total number of test data {-} the correctly predicted class}
+\NormalTok{\}}
+\NormalTok{mlog.err}\OtherTok{=}\NormalTok{mlog.err}\SpecialCharTok{/}\NormalTok{k\_f }\CommentTok{\#error by means of the errors}
+
+\NormalTok{mlog.mis}\OtherTok{=}\NormalTok{mlog.mis}\SpecialCharTok{/}\NormalTok{n}
+\end{Highlighting}
+\end{Shaded}
+
 \begin{verbatim}
   Arithmetic.average.of.errors Misclassification.rate
 1                   0.07996619             0.07996725
@@ -2078,11 +2099,13 @@ function used to implement this Multinomial Logistic Regression relies
 on a random choice of initial parameters and the outcome is sensitive to
 the choice of these initial values.
 
-At last, we attempt to use a random forest, a popular classification
-method that performs very well on many classification tasks. Usually the
-great advantage of random forests is the interpretability of the model,
-which in this case is quite secondary, but it's still worth checking if
-the errors improve:
+We also attempt to use a random forest, a popular classification method
+that performs very well on many classification tasks. Usually the great
+advantage of random forests is the interpretability of the model, which
+in this case is quite secondary, but it's still worth checking if the
+errors improve. We tried tuning the parameters for the random forest but
+we did not find significant improvements, so we kept the default ones
+(\texttt{ntree}=500, \texttt{mtry}=4).
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -2095,7 +2118,7 @@ the errors improve:
 \NormalTok{  train.data}\SpecialCharTok{$}\NormalTok{digit}\OtherTok{=}\FunctionTok{as.factor}\NormalTok{(train.data}\SpecialCharTok{$}\NormalTok{digit)}
 \NormalTok{  test.data}\OtherTok{=}\NormalTok{pendigits[}\SpecialCharTok{!}\NormalTok{train,]}
 \NormalTok{  test.data}\SpecialCharTok{$}\NormalTok{digit}\OtherTok{=}\FunctionTok{as.factor}\NormalTok{(test.data}\SpecialCharTok{$}\NormalTok{digit)}
-\NormalTok{  rfor.model }\OtherTok{=} \FunctionTok{randomForest}\NormalTok{(digit }\SpecialCharTok{\textasciitilde{}}\NormalTok{., }\AttributeTok{data =}\NormalTok{ train.data, }\AttributeTok{ntree=}\DecValTok{100}\NormalTok{)}
+\NormalTok{  rfor.model }\OtherTok{=} \FunctionTok{randomForest}\NormalTok{(digit }\SpecialCharTok{\textasciitilde{}}\NormalTok{., }\AttributeTok{data =}\NormalTok{ train.data)}
 \NormalTok{  pred.classes }\OtherTok{=} \FunctionTok{predict}\NormalTok{(rfor.model, test.data)}
 \NormalTok{  rfor.err}\OtherTok{=}\NormalTok{rfor.err}\SpecialCharTok{+}\FunctionTok{mean}\NormalTok{(pred.classes }\SpecialCharTok{!=}\NormalTok{ test.data}\SpecialCharTok{$}\NormalTok{digit)}
 \NormalTok{  rfor.mis}\OtherTok{=}\NormalTok{rfor.mis}\SpecialCharTok{+}\FunctionTok{sum}\NormalTok{(pred.classes }\SpecialCharTok{!=}\NormalTok{ test.data}\SpecialCharTok{$}\NormalTok{digit) }
@@ -2110,7 +2133,7 @@ the errors improve:
 
 \begin{verbatim}
   Arithmetic.average.of.errors Misclassification.rate
-1                  0.007827198            0.007823872
+1                  0.007736289            0.007732897
 \end{verbatim}
 
 Random forests perform better than all previously considered methods.
@@ -2166,7 +2189,7 @@ cross-validation.
 
 In terms of raw error rates, k-NN should be our best choice. However,
 due to its instability, we should probably opt for Random Forests
-regardless. \textbackslash begin\{align\}
+regardless.
 
 
 

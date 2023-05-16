@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.8.28) (preloaded format=pdflatex 2022.10.15)  16 MAY 2023 12:49
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (MiKTeX 22.8.28) (preloaded format=pdflatex 2022.10.15)  16 MAY 2023 18:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1463,36 +1463,36 @@ Overfull \hbox (10.94264pt too wide) in paragraph at lines 1995--1996
  []
 
 [43] [44 <./ProblemSet2_files/figure-pdf/unnamed-chunk-77-1.pdf>] [45] [46]
-[47] (ProblemSet2.aux) ) 
+[47] [48] (ProblemSet2.aux) ) 
 Here is how much of TeX's memory you used:
- 33102 strings out of 475385
- 680825 string characters out of 2776906
+ 33104 strings out of 475385
+ 680848 string characters out of 2776906
  1196180 words of memory out of 3000000
- 53667 multiletter control sequences out of 15000+600000
+ 53668 multiletter control sequences out of 15000+600000
  533658 words of font info for 166 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  108i,9n,106p,10608b,1033s stack positions out of 10000i,1000n,20000p,200000b,80000s
-{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/enc
-/dvips/lm/lm-ec.enc}{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/enc/dvi
-ps/lm/lm-mathsy.enc}{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/enc/dvi
-ps/lm/lm-rm.enc}{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/l
-m/lm-mathit.enc}{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/l
-m/lm-ts1.enc}<C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
-m/lmbx10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
-m/lmmi10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
-m/lmmi8.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm
-/lmr10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/
-lmr12.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/l
-mr8.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lmr
-i10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lms
-sbx10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/l
-msy10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/l
-msy8.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lm
-tk10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/lm/lm
-tt10.pfb>
-Output written on ProblemSet2.pdf (47 pages, 1820609 bytes).
+{C:/Users/feder/AppData/Local/Programs/MiKTeX/font
+s/enc/dvips/lm/lm-ec.enc}{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/en
+c/dvips/lm/lm-mathsy.enc}{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/en
+c/dvips/lm/lm-rm.enc}{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/enc/dv
+ips/lm/lm-mathit.enc}{C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/enc/dv
+ips/lm/lm-ts1.enc}<C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/pub
+lic/lm/lmbx10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/pub
+lic/lm/lmmi10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/pub
+lic/lm/lmmi8.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/publ
+ic/lm/lmr10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/publi
+c/lm/lmr12.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public
+/lm/lmr8.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
+m/lmri10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/l
+m/lmssbx10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public
+/lm/lmsy10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public
+/lm/lmsy8.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/
+lm/lmtk10.pfb><C:/Users/feder/AppData/Local/Programs/MiKTeX/fonts/type1/public/
+lm/lmtt10.pfb>
+Output written on ProblemSet2.pdf (48 pages, 1821214 bytes).
 PDF statistics:
- 465 PDF objects out of 1000 (max. 8388607)
- 86 named destinations out of 1000 (max. 500000)
+ 469 PDF objects out of 1000 (max. 8388607)
+ 87 named destinations out of 1000 (max. 500000)
  34995 words of extra memory for PDF output out of 35830 (max. 10000000)
 
