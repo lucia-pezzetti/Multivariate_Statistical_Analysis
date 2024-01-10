@@ -1,0 +1,1125 @@
+---
+title: "Problem Set 1"
+author: "Palagi Valerio, Pezzetti Lucia, Testa Federico"
+format: pdf
+editor: visual
+header-includes:
+  - \usepackage{mathtools}
+---
+
+\newcommand{\Si}{\boldsymbol{\Sigma}}
+
+```{r, echo = FALSE, warning=FALSE, message = FALSE}
+library(datasets)
+library(tidyverse)
+library(ggplot2)
+library(gridExtra)
+library(car)
+library(scatterplot3d)
+library(ggforce)
+
+
+lookup<-c("darkgreen",  "brown", "lightblue",  "magenta", "purple", "blue", "red", "lightgreen", "orange", "cyan")
+```
+
+## Exercise 1
+
+The data set *state.x77* in the package *datasets* contains 8 variables:
+
+-   *Population*: population estimate as of July 1, 1975
+
+-   *Income*: per capita income (1974)
+
+-   *Illiteracy*: illiteracy (1970, percent of population)
+
+-   *Life Exp*: life expectancy in years (1969--71)
+
+-   *Murder*: murder and non-negligent manslaughter rate per 100,000 population (1976)
+
+-   *HS Grad*: percent high-school graduates (1970)
+
+-   *Frost*: mean number of days with minimum temperature below freezing (1931--1960) in capital or large city
+
+-   *Area*: land area in square miles
+
+```{r}
+head(state.x77)
+
+colnames(state.x77)
+```
+
+We can immediately notice that state.x77 is not in the form of a data frame, so we first of all need to coerce it into a data frame:
+
+```{r}
+st <- as.data.frame(state.x77);
+```
+
+We perform also some other useful transformations of the variables. In particular, we remove the spaces inside the variables names by renaming *Life Exp* with *Life.Exp* and *HS Grad* with *HS.grad*. Moreover we add an additional variable, called *Density*, that accounts for the population density.
+
+```{r}
+names(st)[4] = "Life.Exp";
+names(st)[6] = "HS.Grad";
+st[,9] = st$Population * 1000 / st$Area;
+colnames(st)[9] = "Density";
+
+names(st)
+
+n <- nrow(st)
+p <- ncol(st)
+```
+
+### 1.1 Compute the correlation matrix and comment on the most relevant relationships among variables (up to 10).
+
+The simplest way to compute the correlation matrix, let's call it $\mathbf{R}$, is by means of the build-in function *cor()*. We round the matrix at the third decimal.
+
+```{r, echo = FALSE, message = FALSE}
+R <- cor(st)
+round(R,3)
+```
+
+Now, since the correlation matrix is symmetrical and we are interested in studying how the variables are correlated among each other, we can reduce our attention only on the upper triangular part of the correlation matrix and then look at the highest correlations in terms of absolute value. We will then analyze the most relevant relationships. As a first step we consider the first ten highest (in term of absolute value) correlations.
+
+```{r, echo = FALSE, message = FALSE}
+Rupp = R
+Rupp[upper.tri(R) == F] <- NA
+
+ord <- order(abs(Rupp), decreasing = T, na.last = T)
+pos_corr_ind <- (which( abs(Rupp) >= Rupp[ord[10]], arr.ind = T))
+
+out <- matrix(names(st)[pos_corr_ind], ncol = 2)
+out <- cbind(out, round(R[pos_corr_ind],3), round(abs(R[pos_corr_ind]),3))
+colnames(out) <- c("First_var", "Second_var", "Correlation", "absCor")
+out <- arrange(as.data.frame(out), desc(absCor))
+out <- select(out, -absCor)
+out$Correlation <- as.numeric(out$Correlation)
+head(out,10)
+```
+
+By looking at these correlations we decide to focus on the first 8 ones. The reasons behind this choice are related to the fact that correlations below 0.5 begins to be too weak and, more importantly, a relevant part of the interpretation of the two latter correlations follows naturally from the previous eight, so it is not particularly worthy of attention.
+
+The first clear-cut correlation is negative and between *Life.Exp* and *Murder* (-0.781). Although at first glance it may seem natural to interpret this relationship (a higher number of murders clearly reduce life expectancy), asserting that the number of murders have, directly, such a huge impact on the life span seems too extreme. To better clarify what we mean let's consider the regression of *Life.Exp* on *Murders*:
+
+```{r}
+lm(data = st, Life.Exp~Murder)
+```
+
+What we get is that if we increase the rate of murders in 100 000 inhabitants of ten unit, we have a decrease of 2.8 years in the average life expectancy of the state. Such a huge reduction seems unjustified if we only associate it to the previous "natural" interpretation. Instead, a possible explanation of this could be that the states in which there is a higher murder rate are also the states with a worse situation of violence and widespread criminality, as a consequence inhabitants of these states live in a more dangerous and stressful environment and this is reflected in a lower life expectancy.
+
+The greatest positive correlation among the variables is between Illiteracy and Murder (0.703). This tells us that states with a higher percentage of illiterate individuals tend to have a higher murder rate, and viceversa. This relationship seems particularly interesting, as it's the second highest in absolute value but doesn't have an immediate "natural" interpretation. A possible one could be that states with a higher illiteracy rate tend to have a lower overall level of education, which in turn could be related to more underdeveloped areas in a broad sense (economically, culturally, ...).
+
+We try to contextualize this interpretation and these correlations in the particular geo-political situation of the US and the socio-economical divide between Northern States and Southern States at the time, in order to validate our interpretation and further elaborate on it. In general, Northern States were historically more industrialized, urbanized and educated whereas Southern States had a more rural economy, a lower education level and a widespread possession of firearms. In this framework, illiteracy seems to be an effective indicator of overall (under)development and is "geographically correlated" to murder rates (through the North-South divide). Indeed, let's look at the states with values of *Murder* and *Illiteracy* above the third quartile:
+
+```{r}
+summary(st)
+filter(st, Illiteracy > 1.575, Murder > 10.675)
+```
+
+As expected, they all are Southern rural states.
+
+Similarly, if we consider all the states whose *Murder* rate is above the third quartile and whose life expectancy is below the first quartile, we obtain:
+
+```{r}
+filter(st, Murder > 10.675, Life.Exp < 70.12)
+```
+
+As we can see, with the only exception of Alaska (whose situation, as we will see and as expected, is exceptional and not comparable to the one of the other US states), this results support our speculations.
+
+To proceed we notice that, quite surprisingly, *Frost* is significantly negatively correlated with *Illiteracy* (-0.672). This relationship may seem quite counterintuitive as in states with a very harsh climate (let's for example think at the Alaska) we expect lower civilization, where the term civilization is used in its broadest sense. Nevertheless, if we contextualize it, then this relationship appears nearly natural: the states with a warmer climate are the Southern ones and therefore, as already addressed, the ones with, on average, a lower level of education. To a further confirm, we can filter our data frame by retaining only the states with values for *Frost* below the first quartile and for *Illiteracy* above the third one.
+
+```{r}
+filter(st, Illiteracy > 1.575, Frost < 66.25)
+```
+
+The following correlation we analyze in some sense reflect what we have already implicitly addressed in the above interpretations. Indeed, the fact that *Illiteracy* and *HS.Grad* are negatively correlated (-0.657) can be viewed as a consequence of the fact that both a high percentage of illiterates and non-graduates reflect an overall cultural framework that gives less "value" to education.
+
+Another straightforward relationship is the positive correlation between *HS.Grad* and *Income* (0.620). This can be explained by enhancing both a direct and an indirect linkage. Specifically, it is reasonable that high-school graduates are usually more highly-qualified and therefore can apply to jobs with higher wages and, at the same time, states with a large share of graduates are more likely to invest more on the educational system, being more urbanized and attractive for large firms that can afford to pay more their employees.
+
+Taking into account everything we have already discussed above, the two next correlations, *Illiteracy*-*Life.Exp* (-0.588) and *HS.Grad*-*Life.Exp* (0.582), seem to have a well-grounded explanation. Explicitly, we have already argued that both *Illiteracy* and *HS.Grad* may be considered as global indicators of the level of education of a states, which is more inadequate in the Southern states. Furthermore, these very states are also the ones with a higher murder rate and so, as justified above, a more widespread criminality. If we also recall our diagnosis of the correlation between *Murder* and *Life.Exp*, our impression is that the historical background support the fact that states with a significant level of illiteracy or, in general, a low percentage of high-school graduates are also the ones with a shorter life expectancy. In addition to this, we may also guess how these aspects interact with each other: more educated individuals might be more conscious about their lifestyles, pay more attention to healthy habits, have jobs that are less physically demanding and are more likely to live in urban areas where it is more easy to have access to healthcare facilities.
+
+```         
+```
+
+Finally, the data reveal that *Murder* is negatively correlated with *Frost*(-0.539). Once again this linkage may be contextualized in the South-North divide of the US. States that have warmer climates also have a higher murder rate whereas states with a more harsh climate tend to have a lower number of murders.
+
+```{r}
+st %>% filter((Murder > 10.675 & Frost < 66.25) | 
+                (Murder < 4.350 & Frost > 139.75)) %>% arrange(Frost)
+st %>% filter((Murder > 10.675 & Frost > 139.75) |
+                (Murder < 4.350 & Frost < 66.25)) %>% arrange(Frost)
+```
+
+The two above data frames might help in giving a better visual representation of the correlation.
+
+To conclude the analysis of the correlations, we can notice the fact that *Population*, *Area* and *Density* are little correlated to any other variable. This is interesting and deserve some remarks. To begin with, the geographical extension of the states is strongly related to the history of the country: the smaller eastern states correspond to the first thirteen British colonies or, more generally, to the territories colonized in the first phases of the European expansion. Conversely, the larger, "ruler-drawn" central and western states are the one colonized later during the so-called westward expansion. This suggests that *Area* is more associated to a east-west subdivision, rather than a south-north one and separates *Area* from the other variables. Similarly, both *Population* and *Density* may be regarded as "cross-sectional" variables, meaning that they are too influenced by historical, cultural and geographical features to display a clearly distinguishable pattern and this place them in a unique situation and do not allow for meaningful correlation with the other variables.
+
+### 1.2 Find univariate outliers, up to 3 per variable, up to 10 in total.
+
+To discuss the univariate outliers we start by considering the standardized values $z_{ij} = \frac{x_{ij} - \bar{x}}{s_{jj}}$ and examine them for large or small values compared to the quantiles of standard normal distribution. In particular we choose to use as threshold the $\frac{n-0.5}{n}$ normal quantile.
+
+```{r, echo = FALSE, message = FALSE}
+head(round(scale(st),3))
+
+(q <- qnorm((n-0.5)/n))
+
+ind_outliers <- which(abs(scale(st))>q, arr.ind = T)
+```
+
+We summarize the results in a data frame where The obtained potential univariate outliers with the corresponding variable are:
+
+```{r, echo = FALSE, message = FALSE}
+univ_outliers <- transmute(as.data.frame(ind_outliers), 
+                           variable = colnames(st)[ind_outliers[,2]], 
+                           outlier =rownames(st)[ind_outliers[,1]])
+rownames(univ_outliers) <- seq(1, nrow(univ_outliers))
+univ_outliers
+```
+
+### 1.3 Make a boxplot of any variable plotting the corresponding outliers, if any, found in point 2 in red
+
+As the above procedure shows we have eight potential univariate outliers. We can add more evidence to whether they are actually outliers by considering the boxplots of the interested variables and marking them in red. We moreover notice that, since the variables have very different scales, we consider the scaled data.
+
+```{r,, echo = FALSE, message = FALSE}
+var_outliers <- which(1:9 %in% ind_outliers[,2])
+
+x_outliers <- c(1,1,2,3,4,5,5,5)
+y_outliers <- rep(1:(nrow(ind_outliers)))
+lab_outliers <- rep(1:(nrow(ind_outliers)))
+for (i in 1:(nrow(ind_outliers))){
+  y_outliers[i] <- scale(st)[ind_outliers[i,1], ind_outliers[i,2]]
+  lab_outliers[i] <- univ_outliers[i,2]
+}
+
+scale_st_out <- as.data.frame(scale(st[,var_outliers]))
+stack_st_out <- stack(scale_st_out)
+ggplot(stack_st_out, mapping = aes(x = ind, y = values)) + 
+  geom_boxplot() + stat_boxplot(geom="errorbar", width = 0.2) +
+  geom_point(data = univ_outliers,
+             mapping = aes(x = x_outliers, y = y_outliers), 
+             col = "red") +
+  geom_text(data = univ_outliers,
+             mapping = aes(x = x_outliers, y = y_outliers, label = lab_outliers),
+            hjust = 1.4, nudge_x = 0.05, size = 2, check_overlap = F) +
+  theme(axis.title = element_blank())
+```
+
+From the boxplots we can make some considerations:
+
+-   For all the potential outliers that we have identified, except for the one of *Illiteracy*, we have further evidence to support claim that they are univariate outliers.
+-   We have failed in identifying some other "outlier-candidates" for the variables *Population*, *Area* and *Density*. Indeed, even if the detected ones exhibits a more extreme behavior, the boxplots still suggest that these observations deviates strongly with respect to the other.
+-   As already said, the boxplot of the variable *Illiteracy* shows no outliers. The potential one that we have detected seems to correspond exactly to the upper acceptance limit of the boxplot, thus we may conclude that, even if the observation is certainly peculiar, there are not enough indications to consider it an outlier.
+
+We may make an hypothesis to explain why the boxplots present so many discrepancies with respect to our predictions: the reason why we have detected a "false" outlier for illiteracy and just some of the outliers of *Population*, *Area* and *Density* may be related to an unjustified assumption of normality in the criterion used (i.e the comparison to the quantiles of order $\frac{n-0.5}{n}$ of the gaussian distribution). We'll argue more about this in the following section.
+
+### 1.4 Comment about normality of each variable
+
+To study the normality of each variable we rely on two main tools: the histograms of the data and the QQ normal plots.
+
+Before proceeding we recall that the distribution of a standard gaussian distribution is symmetrical around the mean and has a bell-like shape. Therefore, if the distribution of a variable is significantly skewed (to the left or to the right) it is likely not to be normally distributed. To better interpret the histograms we draw not only the histograms themselves, but also the sample density of the considered variable, the (dotted) density of a gaussian (generated by considering a normal sample of size $n=50$ equal to the number of observations of our variables) and finally a vertical red line at position given by the sample mean.
+
+For what concern the Q-Q plots, instead, we emphasize the fact that they play a vital role to graphically analyze and compare two probability distributions by plotting their quantiles against each other. In our case the theoretical quantile that we are going to consider are the one corresponding to the normal distribution and we plot them against the sample quantiles. If the two distributions which we are comparing are sufficiently similar, meaning that our variable is reasonably gaussian, then the points in the Q-Q plot will approximately lie on a straight line.
+
+We start by analyzing the three variables (*Population*, *Area*, *Density*) for which we have failed to detect some upper outlier candidates.
+
+```{r, echo = FALSE, message = FALSE}
+k = c(1,8,9)
+for (i in k) {
+  par(mfrow=c(1,2))
+  x = st[,i]
+  set.seed(8)
+  hst <- ggplot(st, aes(x)) +
+    geom_histogram(aes(y = ..density..), bins = 20, col = "black", 
+                   fill = "brown", alpha = 0.2) + 
+    geom_density(lwd = 1, fill = "blue", alpha = 0.25) +
+    geom_density(aes(x = rnorm(n, mean(x), sd(x))), lwd = 0.6, 
+                 lty =2, show.legend = T) +
+    geom_vline(xintercept = mean(x), col = "red") +
+    ggtitle(paste("Histogram of\n", names(st)[i])) +
+    labs(x = "n = 50, bins = 20", y = "Density") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  qq <- ggplot(st, aes(sample = x)) + geom_qq() + geom_qq_line(col = "red") +
+    ggtitle(paste("Normal Q-Q Plot of\n", names(st)[i])) +
+    labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
+    theme(plot.title = element_text(hjust = 0.5))
+  grid.arrange(hst, qq, ncol = 2)
+}
+```
+
+As expected, there is little evidence to support the assumption of normality for *Population* and *Density*. They are both skewed to the right and present lower and (even more dramatically) upper quantiles that deviates from the theoretical gaussian ones. The plots also allow for a discussion on the kurtosis of the distribution: both the variables exhibit a heavy right tail and a light left one. However, for what concern the left tail of the distribution, we think that this behavior is introduced by the lower bound these variables have (they need to be positive). Indeed, the presence of a lower bound that is "close" to the mean with respect to the total variability of the data, artificially creates the effect of a lighter-than-normal left tail.
+
+*Area* presents a more delicate situation. It is still a bit skewed to the right, however (except from the last two points) the deviation from the straight line is much more suppressed and makes it difficult to safely reject the hypothesis of normality of the variable. Nevertheless, both ends of the Q-Q plots display that the tails of the sample distribution are quite different to the gaussian ones. Therefore we believe that there is no enough evidence to support the gaussianity of the variable *Area*.
+
+Despite this, the presence of two observations that deviates significantly from the others suggests the possibility to study the normality of the variable without considering them. First of all, it is meaningful to identify those outliers, indeed we only know that the most extreme one is Alaska. We rapidly obtain that the two outliers are:
+
+```{r, echo = FALSE, message = FALSE}
+area <- arrange(select(st, Area), Area)
+rownames(filter(st, Area %in% area[(n-1) : n,] ))
+```
+
+Now, we remove these values and plot the histogram and the Q-Q plot of *Area*:
+
+```{r, echo=FALSE, message=FALSE}
+area <- as.data.frame(area[-c(n-1, n),])
+x = area[,1]
+par(mfrow=c(1,2))
+set.seed(8)
+hst <- ggplot(area, aes(x)) +
+  geom_histogram(aes(y = ..density..), bins = 20, col = "black", 
+                 fill = "brown", alpha = 0.2) + 
+  geom_density(lwd = 1, fill = "blue", alpha = 0.25) +
+  geom_density(aes(x = rnorm(nrow(area), mean(x), sd(x))), lwd = 0.6, 
+               lty =2, show.legend = T) +
+  geom_vline(xintercept = mean(x), col = "red") +
+  ggtitle("Histogram of Area\n  without outliers") +
+  labs(x = "n = 50, bins = 20", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+qq <- ggplot(area, aes(sample = x)) + geom_qq() + geom_qq_line(col = "red") +
+  ggtitle("Normal Q-Q Plot of\n Area without univ. outliers") +
+    labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
+  theme(plot.title = element_text(hjust = 0.5))
+grid.arrange(hst, qq, ncol = 2)
+```
+
+Even if the Q-Q plot is closer to an acceptable one, even now there are some features that make us hesitant to not reject the hypothesis of normality. In particular, the trend of the lower quantiles suggests the possibility to have a bimodal distribution and this may make the sample distribution meaningfully different to the Gaussian one. As a consequence, even in the absence of the outliers, we do not feel safe enough in not rejecting the gaussianity of the variable, but we suspend our judgment as we will need to make further tests.
+
+Let's now take into account the variable *Illiteracy*. We recall that, by comparison between the standardized data and the normal quantile of order $\frac{n-0.5}{n}$, we have wrongly identified a potential outlier.
+
+```{r, echo=FALSE, message=FALSE}
+par(mfrow=c(1,2))
+i = 3
+x = st[,i]
+set.seed(8)
+hst <- ggplot(st, aes(x)) +
+  geom_histogram( aes(y = ..density..), bins = 20, col = "black", 
+                  fill = "brown", alpha = 0.2) + 
+  geom_density(lwd = 1, fill = "blue", alpha = 0.25) +
+  geom_density(aes(x = rnorm(n, mean(x), sd(x))), lwd = 0.6, 
+               lty =2, show.legend = T) +
+  geom_vline(xintercept = mean(x), col = "red") +
+  ggtitle(paste("Histogram of\n", names(st)[i])) +
+  labs(x = "n = 50, bins = 20", y = "Density") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+qq <- ggplot(st, aes(sample = x)) + geom_qq() + geom_qq_line(col = "red") +
+  ggtitle(paste("Normal Q-Q Plot of\n", names(st)[i])) +
+  labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(hst, qq, ncol = 2)
+```
+
+The *Illiteracy* Q-Q plot exhibits some very interesting features:
+
+-   The stairstep pattern, in which only specific, separated heights ("sample quantiles") are attained, shows the data values are discrete.
+
+-   There is a large number of values at the value of 0.6, far more than any other value. This concentration of values tends to skew the data to the right.
+
+-   Apart from this "spike" at 0.6, a closer look shows that the remaining points are initially slightly lower than the reference line (for values between 0.7 and 1.5) and then slightly greater (for values between 1.6 and 2.3) before roughly returning to the line at the end (values 2.4 and 2.8). This "curvature" indicates a certain form of non-normality.
+
+Putting everything together, even for this variable there is no enough evidence to support the normality assumption.
+
+Finally we consider the remaining variables.
+
+```{r, echo=FALSE, message=FALSE}
+k = c(2,4,5,6,7)
+for (i in k) {
+  par(mfrow=c(1,2))
+  x = st[,i]
+  set.seed(8)
+  z <- as.data.frame(rnorm(800, mean(x), sd(x)))
+  hst <- ggplot(st, aes(x)) +
+    geom_histogram(aes(y = ..density..), bins = 20, col = "black", 
+                   fill = "brown", alpha = 0.2) + 
+    geom_density(lwd = 1, fill = "blue", alpha = 0.25) +
+    geom_density(data = z, aes(x = z[,1]), lwd = 0.6, 
+                 lty =2, show.legend = T) +
+    geom_vline(xintercept = mean(x), col = "red") +
+    ggtitle(paste("Histogram of\n", names(st)[i])) +
+    labs(x = "n = 50, bins = 20", y = "Density") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  qq <- ggplot(st, aes(sample = x)) + geom_qq() + geom_qq_line(col = "red") +
+    ggtitle(paste("Normal Q-Q Plot of\n", names(st)[i])) +
+    labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  grid.arrange(hst, qq, ncol = 2)
+}
+```
+
+For all these variables but *Murder* and *HS.Grad* there seems to be enough evidence to not reject the assumption of univariate gaussianity. We consequently focus on the two remaining variables.
+
+The plots of *HS.Grad* are quite controversial: the jump in the Q-Q plot together with the "wave-like" trend of the sample quantiles suggests that the variable has a bimodal probability density. In addition the highest and lowest quantiles present spikes of quite similar entities followed by very thin tails. For all these reasons we are more inclined to reject the normality of *HS.Grad*.
+
+For what concern *Murder*, similarly, there are multiple "red flags" that encourage us to reject the hypothesis of normality. Not only the sample density of *Murder* is bimodal, but it also have light tails on both sides (since the sample quantiles are higher than the theoretical ones in the left-bottom of the Q-Q plot and lower than the theoretical ones in its the right-top).
+
+We can validate our speculations by performing a Shapiro test. The Shapiro test is used to test whether a variable is normally distributed or not. The null hypothesis states that the considered variable is normally distributed, therefore if the p-value is greater than 0.05 (standard threshold), then the normality of the data is not rejected. The results of the tests will be saved in a data frame.
+
+```{r, echo = FALSE, message = FALSE}
+shap <- matrix(rep("", 3*p), p, 3)
+for ( i in 1:p ){
+  shap[i, 1] <- colnames(st)[i]
+  s <- shapiro.test(st[,i])
+  shap[i, 2] <- s$p.value
+  shap[i, 3] <- s$statistic
+}
+shap <- as.data.frame(x = shap)
+colnames(shap) <- c("Variable", "p.value", "Statistics")
+shap$p.value <- as.numeric(shap$p.value)
+shap$Statistics <- as.numeric(shap$Statistics)
+shap
+```
+
+The variables that "pass" the Shapiro test, meaning that they have a sufficiently high p-value, are:
+
+```{r}
+shap %>% filter(p.value > 0.05)
+```
+
+This suits and validates our previous discussion.
+
+To conclude, we use the Shapiro test also to check if the non-gaussianity of *Area* is greatly influenced by the presence of the two outliers Alaska and Texas.
+
+```{r, echo = FALSE, message = FALSE}
+shapiro.test(area[,1])
+```
+
+The p-value returned by the test is higher than 0.05, therefore we can conclude that after removing the observations relative to Alaska and Texas, that are by far the states with the largest territorial extension, we do not reject anymore the assumption that *Area* is gaussian.
+
+### 1.5 Make a scatter plot of Area vs Population, colour-coding the outliers found in point 2 with a different colours. Choose among the following colour names. Can they be considered bivariate outliers?
+
+In this section we are clearly interested in analyzing whether the univariate outliers of *Population* and *Area* can also be considered as bivariate outliers (for this pair of variable). Nevertheless, we think that it would be also interesting to verify if any of the univariate outliers for the other variables shows a peculiar behavior for this bivariate distribution. To accomplish this we firstly recall which are the univariate outliers (restricted to those found in section 1.2) of *Area* and *Population*:
+
+```{r, echo = FALSE, message = FALSE}
+pop_ar_out <- filter(univ_outliers, 
+                     variable == "Population" | variable == "Area")
+pop_ar_out
+
+```
+
+We can observe that the two variables have no univariate outliers in common (among the ones identified in section 1.2).
+
+```{r, echo=FALSE, message=FALSE}
+outliers <- distinct(as.data.frame(st[ind_outliers[,1],]));
+ind <- which(st$Population %in% outliers$Population, arr.ind = T);
+```
+
+```{r, echo = FALSE, message = FALSE}
+name_out <- rep("", n)
+name_out[ind] <- rownames(st[ind,])
+col_ind <- rep("black", n)
+col_ind[ind] <- lookup[4:10]
+ggplot(st, mapping = aes(x = Area, y = Population, label = name_out)) + 
+  geom_point(color = col_ind) +
+  geom_text(hjust = 1.1, nudge_x = 0.05, size = 2, check_overlap = F) + 
+  expand_limits(x = c(-0.5*10^5, 6.0*10^5))
+```
+
+The scatter plot reveals that the three univariate outliers for *Area* (Alaska) and *Population* (California and New York), can also be regarded as bivariate outliers. Indeed, even if their values are extreme only for one of the two variables, these values are so "out-of-proportion" with respect to the other data that they relevantly isolate the univariate outliers also in the bi-dimensional scatter plot. In addition to these three states, we also notice the presence of a fourth potential bivariate outlier. We can easily identify it as Texas since it corresponds to the states with the second largest geographical extension (and therefore is the second outlier of *Area* that we have discussed about in the previous section). To be more complete, we can also notice that Texas is the third most populated state so, by combining this information to the boxplot of *Population* plotted in section 1.3, we can conclude that Texas was not only a univariate outlier for *Area* but also for *Population*.
+
+Another aspect worth-noticing of the plot is that all the univariate outliers of the other variables do not exhibit any special behavior, but they are inside the "cloud" of the points.
+
+Finally, we have decided not to perform the analysis of the bivariate outliers with the aid of the ellipse containing the $\frac{n-0.5}{n} \% = 0.99\%$ of the joint population distribution because this approach relies on the assumption of bivariate Gaussian distribution, that in this context does not hold. Indeed, the data lead to reject the Gaussianity of both *Area* and *Population* and therefore it is highly improbable that their joint distribution is Normal.
+
+To outline the drawn conclusions, we produce again the scatter plot of *Area* vs *Population* , this time only enhancing the identified bivariate outliers. To do so it is enough to retain only the two states with the largest territorial extensions and the two with the largest population.
+
+```{r, echo=FALSE, message=FALSE}
+ind_biv_out <- c(order(st$Area, decreasing = T)[1:2], 
+                 order(st$Population, decreasing = T)[1:2])
+biv_out <- st[ind_biv_out,]
+name_biv_out <- rep("", n)
+name_biv_out[ind_biv_out] <- rownames(biv_out)
+col_ind <- rep("black", n)
+col_ind[ind_biv_out] <- lookup[c(4,2,5,9)]
+ggplot(st, mapping = aes(x = Area, y = Population, label = name_biv_out)) + 
+  geom_point(color = col_ind) +
+  geom_text(hjust = 1.1, nudge_x = 0.05, size = 2, check_overlap = F) + 
+  expand_limits(x = c(-0.2*10^5, 6.0*10^5))
+```
+
+1.6 Construct a chi-square Q-Q plot of the squared Mahalanobis distances and comment about multivariate normality.
+
+From the previous sections we know that there is not enough evidence for univariate normality of six out of the variables hence we expect that the multivariate distribution is not Gaussian (otherwise all the marginal distributions would have been Gaussian).
+
+To confirm this, we compute the squared generalized distances $d_i^2 = (x_i-\bar{x})^T\mathbf{S}^{-1}(x_i-\bar{x}), \quad i = 1, \dots, n$. Under the jointly multivariate assumption, each of the squared distances should behave like $\chi^2_p$ random variables (with $p$ corresponding to the number of variables of the considered data set). We can, therefore, address the problem of multivariate normality by plotting the increasingly arranged values of the squared Mahalanobis distances against the theoretical quantiles of the chi-square distribution with p degrees of freedom. The multivariate normality will not be rejected if the plot resembles a straight line through the origin.
+
+```{r, echo = FALSE, message = FALSE}
+x.bar <- colMeans(st)
+S <- cov(st)
+
+d = mahalanobis(st, center = x.bar, cov = S);
+
+ggplot(as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), y = sort(d))) + 
+ geom_point() + geom_abline(intercept = 0, slope = 1, col = "red", lwd = 1) +
+  expand_limits(x = c(-0.0, 40.0)) +
+  ggtitle("Chi-squared QQ-plot of\n squared generalized distancees")
+
+```
+
+As expected the plot indicates a lack of evidence for multivariate normality:
+
+-   the great majority of the squared distances (approximately all the ones between 0 and 10) are slightly below the straight line. This correspond to the fact that the points at the left end of the plot are more densely concentrated than for a $\chi^2_p$ distribution.
+-   the largest values, conversely, display an increasing trend that indicates a heavier right tail in the squared distances distribution.
+
+The two remarks together give a clear indication that we lack statistical evidence to assess the Chi-squared distribution, and so underlying multivariate normal distribution. Therefore, combining this plot with the already discussed results of univariate gaussianity, we conclude that there are enough elements to reject the assumption of multivariate gaussianity.
+
+### 1.7 Identify multivariate outliers, if any, and compare with the univariate outliers previously found
+
+Despite the lack of evidence to support multivariate normality (but never forgetting this potential source of complications and mistakes), we try to detect multivariate outliers using again the squared Mahalanobis distance. This is useful since it may reveals unexpected multivariate outliers, that do not exhibit particularly extreme behaviors for any of the single variables.
+
+```{r, echo = FALSE, message = FALSE}
+a = (n-0.5)/n
+
+col_ind <- rep("black", n)
+col_ind[ind] <- lookup[4:10]
+
+x = 1:length(d)
+ggplot(as.data.frame(d), aes(x = x, y = d, label = name_out)) + 
+  geom_point(pch = 16, col = col_ind) + 
+  geom_text(hjust = 1.1, nudge_x = 0.05, size = 2, check_overlap = F) +
+  geom_hline(yintercept = qchisq(a, df = p), col = "red", lty = 2) + 
+  ggtitle("Multivariate outliers") + 
+  ylab("squared Mahalonobis distances") + 
+  xlab("indexes") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+The comparison of the squared Mahalanobis distances with the $\frac{n-0.5}{n}\%=0.99\%$ quantile of the $\chi^2_p$ distribution highlights the presence of two multivariate outliers, which correspond to the states of:
+
+```{r, echo = FALSE, message = FALSE}
+names(sort(d, decreasing = T)[1:2])
+```
+
+```{r, echo=FALSE, message=FALSE}
+ind_mul_out <- order(d, decreasing = T)[1:2]
+mul_out <- st[ind_mul_out,]
+name_mul_out <- rep("", n)
+name_mul_out[ind_mul_out] <- rownames(mul_out)
+col_ind <- rep("black", n)
+col_ind[ind_mul_out] <- lookup[c(4,10)]
+
+ggplot(as.data.frame(d), aes(x = x, y = d, label = name_mul_out)) + 
+  geom_point(pch = 16, col = col_ind) + 
+  geom_text(hjust = 1.2, nudge_x = 0.05, size = 2, check_overlap = F) +
+  geom_hline(yintercept = qchisq(a, df = p), col = "red", lty = 2) + 
+  ggtitle("Multivariate outliers") + 
+  ylab("squared Mahalonobis distances") + 
+  xlab("indexes") + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+The comparison shows that Alaska and Hawaii are the only two potential multivariate outliers. Alaska was also a univariate outlier for the two distinct variables *Income* and *Area*, whereas Hawaii is not one of the univariate outliers (which we have found in section 1.2) for any of the variables. Therefore we may argue that, although both of them can be considered as multivariate outliers, the reason for that has different explanations:
+
+-   the squared Mahalanobis distance of Alaska is, probably, so large because of the fact that it is both a univariate and a bivariate outlier for some of the variables.
+-   conversely, it is more likely that the Mahalanobis distance of Hawaii is large due to the global interactions in the joint distribution.
+
+To have a confirmation of these speculations we mark the observation related to Hawaii in all the boxplots of the variables:
+
+```{r, echo=FALSE, message=FALSE}
+ind_Hawaii <- which(rownames(st) == "Hawaii")
+x_Hawaii <- seq(1, p)
+y_Hawaii <- rep(1, p)
+lab_Hawaii <- rep("Hawaii", p)
+for (i in 1:p){
+  y_Hawaii[i] <- scale(st)[ind_Hawaii, i]
+}
+
+stack_st_out <- stack(as.data.frame(scale(st)))
+ggplot(stack_st_out, mapping = aes(x = ind, y = values)) + 
+  geom_boxplot() + stat_boxplot(geom="errorbar", width = 0.2) +
+  geom_point(data = as.data.frame(x_Hawaii),
+             mapping = aes(x = x_Hawaii, y = y_Hawaii), 
+             col = "red") +
+  geom_text(data = as.data.frame(x_Hawaii),
+             mapping = aes(x = x_Hawaii, y = y_Hawaii, label = lab_Hawaii),
+            hjust = 1.4, nudge_x = 0.05, size = 2, check_overlap = F) +
+  theme(axis.title = element_blank())
+```
+
+Interestingly, these two multivariate outliers correspond to the two latest states to have joined USA and this may have played a relevant role in isolating them from a cultural and historical point of view. In addition, they are also the only two non-contiguous states of the US and are characterized by two quite unique geographical contexts.
+
+All these peculiarities may play an important role in explaining the exceptionality of these states.
+
+## Exercise 2
+
+Let us consider $Z=(X,Y_1,Y_2)$ a Gaussian random vector $N_3(\mu,\boldsymbol{\Sigma})$ where
+
+$$\begin{aligned}
+\mu=
+  \begin{bmatrix}
+  1 \\ 0 \\ 2 \\
+  \end{bmatrix} \quad   
+\boldsymbol{\Sigma}=
+\begin{bmatrix} 
+  1 & -\rho & \rho \\
+  -\rho & 1 & \rho \\
+  \rho & \rho & 1 \\
+  \end{bmatrix}
+\end{aligned}$$
+
+with $-1<\rho<0.5$.
+
+### 2.1 Find the inverse of $\boldsymbol{\Sigma}$
+
+First of all, the matrix $\boldsymbol{\Sigma}$ is invertible since the determinant is different from $0$ for every value of $\rho$ considered: $$
+det(\boldsymbol{\Sigma})=1-3\rho^2-2\rho^3=(1+\rho)(1-\rho-2\rho^2)=(1+\rho)^2(1-2\rho)\neq 0
+$$
+
+We note that the covariance matrix of $Z$ can be written as $\boldsymbol{\Sigma}=(1+\rho)I-\rho aa^T$ where $a=(1,1,-1)$ tri-dimensional vector. If we define $\boldsymbol{\Sigma}^*\coloneqq\frac{1}{1+\rho}\boldsymbol{\Sigma}$, we note that we have a matrix of the form: $\boldsymbol{\Sigma}^*=I-\frac{\rho}{1+\rho}aa^T$. If we find the inverse of $\boldsymbol{\Sigma}^*$, then simply $\boldsymbol{\Sigma}^{-1}=\frac{1}{1+\rho}(\boldsymbol{\Sigma}^*)^{-1}$. The form of $\boldsymbol{\Sigma}^*$ suggests that we may look for an inverse matrix using the Neumann series technique, which can be stated as:\
+
+```{=tex}
+\begin{quote}
+\textbf{Theorem:} If $T$ is a bounded linear operator on a normed vector space $X$, and if the Neumann series $\sum_{k=0}^{\infty} T^k$ converges in the operator norm, then $\mathrm{Id}-T$ is invertible and its inverse is given by the Neumann series: $$(I-T)^{-1}=\sum_{k=0}^\infty T^k$$
+\end{quote}
+```
+In our particular instance the normed space is the space of real valued $3$x$3$ matrices and the operator norm of a matrix is given by the spectral radius, which is trivially bounded for any matrix in the space. The advantage of this method is that by the associative property of matrix product we manage to simplify greatly the powers of $aa^T$, using the inner product $(\cdot,\cdot)$: \begin{equation}
+  (aa^T)^2=(aa^T)(aa^T)=a(a^Ta)a^T=(a,a)aa^T=||a||^2aa^T=3aa^T
+\end{equation} Thus, more generally (by simple induction): \begin{equation}
+(aa^T)^n=||a||^{n-1}aa^T=3^{n-1}aa^T=\frac{3^n}{3}aa^T, \forall n\ge1
+\end{equation} So the inverse of $\boldsymbol{\Sigma}^*$ is $\sum_{n\ge0}\left(\frac{\rho}{1+\rho}aa^T\right)^n=I+\frac{1}{3}\left[\sum_{n\ge1} \left(\frac{3\rho}{1+\rho}\right)^n\right]aa^T$, whenever the geometric series above converges. The series does not converge for all values of $\rho$ considered, but since the theorem above does not say anything whenever the series is not-convergent, we can use it to guess effectively the form of the inverse $$(\boldsymbol{\Sigma}^*)^{-1}=I+\beta aa^T \text{ for some }\beta$$ Combining our guess with the condition of invertibility $$I=\boldsymbol{\Sigma}^* (\boldsymbol{\Sigma}^*)^{-1}$$ (it is sufficient to check for the left/right inverse condition, since we know the inverse exists and thus it's the unique left/right inverse), we get: $$\begin{aligned}
+I&=(I-\frac{\rho}{1+\rho}aa^T)(1+\beta aa^T)=\\
+&=I+\left(\beta-\frac{3\beta\rho}{1+\rho}-\frac{\rho}{1+\rho}\right)aa^T=\\
+&=I+\left(\frac{1-2\rho}{1+\rho}\beta-\frac{\rho}{1+\rho}\right)aa^T\\
+&\implies\beta=\frac{\rho}{1-2\rho}
+\end{aligned}$$ and the solution is well defined since $\rho$ is smaller than $\frac{1}{2}$.\
+To conclude, the inverse of $\boldsymbol{\Sigma}$ is $$ 
+\boldsymbol{\Sigma}^{-1}=\frac{1}{1+\rho}(\boldsymbol{\Sigma}^*)^{-1}=\frac{1}{1+\rho}I+\frac{\rho}{(1-2\rho)(1+\rho)}aa^T
+$$ which can be written explicitly as $$
+aa^T=
+\begin{bmatrix}
+1&1&-1\\1&1&-1\\-1&-1&1 
+\end{bmatrix}
+\implies
+\boldsymbol{\Sigma}^{-1}=\frac{1}{(1-2\rho)(1+\rho)}
+\begin{bmatrix}
+1-\rho & \rho & -\rho \\
+\rho & 1-\rho & -\rho \\
+-\rho & -\rho & 1-\rho
+\end{bmatrix}
+$$
+
+### 2.2 Find the eigenvalues of $\boldsymbol{\Sigma}$
+
+A possible solution would be to find the solution of the characteristic polynomial, which is the standard procedure. However, we note that:
+
+-   the sum of the eigenvalues is the trace of the matrix $\boldsymbol{\Sigma}$: $\lambda_1+\lambda_2+\lambda_3=Tr(\boldsymbol{\Sigma})=3$
+-   the eigenvalues of the inverse $\boldsymbol{\Sigma}^{-1}$ are the reciprocal of the eigenvalues of $\boldsymbol{\Sigma}$, and using the same property of the trace we mentioned above: $\frac{1}{\lambda_1}+\frac{1}{\lambda_2}+\frac{1}{\lambda_3}=Tr(\boldsymbol{\Sigma}^{-1})=\frac{3(1-\rho)}{(1-2\rho)(1+\rho)}$
+-   since $\boldsymbol{\Sigma}=(1+\rho)I-\frac{\rho}{1+\rho}aa^T$ it's easy to see that $a$ is an eigenvector of $\boldsymbol{\Sigma}$ (not-normalized), because: $\boldsymbol{\Sigma}a=(1+\rho)a-\rho a(a^Ta)=\left(1+\rho-3\rho\right)a=(1-2\rho)a$.
+
+Let us set $\lambda_1=1-2\rho$, eigenvalue corresponding to the eigenvector $a$. Then by combining the first two conditions we get the following system: $$
+\left\{
+\begin{aligned}
+ &1-2\rho+\lambda_2+\lambda_3=3\\
+ &\frac{1}{1-2\rho}+\frac{1}{\lambda_2}+\frac{1}{\lambda_3}=\frac{3(1-\rho)}{(1-2\rho)(1+\rho)}
+\end{aligned}\right.
+\quad
+\left\{
+\begin{aligned}
+ &\lambda_2+\lambda_3=2(1+\rho)\\
+ &\frac{\lambda_2+\lambda_3}{\lambda_2\lambda_3}=\frac{3(1-\rho)-(1+\rho)}{(1-2\rho)(1+\rho)}
+\end{aligned}\right.
+$$ Substituting sum in the first into the second yields: $$
+\left\{
+\begin{aligned}
+ &\lambda_2+\lambda_3=2(1+\rho)\\
+ &\frac{1(1+\rho)}{\lambda_2\lambda_3}=\frac{2(1-2\rho)}{(1-2\rho)(1+\rho)}
+\end{aligned}\right.
+\quad
+\left\{
+\begin{aligned}
+ &\lambda_2+\lambda_3=2(1+\rho)\\
+ &\frac{1(1+\rho)}{\lambda_2\lambda_3}=\frac{2}{1+\rho}
+\end{aligned}\right.
+$$ $$
+\left\{
+\begin{aligned}
+ &\lambda_2+\lambda_3=2(1+\rho)\\
+ &\lambda_2\lambda_3=(1+\rho)^2
+\end{aligned}\right.
+\implies \lambda_2=\lambda_3=1+\rho
+$$
+
+So the eigenvalues are $\lambda_1=1-2\rho, \lambda_2=\lambda_3=1+\rho$.
+
+### 2.3 Let PC1 and PC2 be the first two (population) principal components of $Z$. Find $\rho$ such that they account for more than 80% of the total variation of X.
+
+We recall that the total variation of $Z$ is equal to the total variance of the principal components and that the (population) covariance matrix of the principal components is, by construction, a diagonal matrix with the eigenvalues of $\boldsymbol{\Sigma}$ on the diagonal in decreasing order. hence the proportion of variance of $Z$ explained by the first two principal components is given by the ratio between the sum of the two largest eigenvalues of $\boldsymbol{\Sigma}$ (i.e.: the variance of the first two PCs) and the sum of all eigenvalues of $\boldsymbol{\Sigma}$, which is equal to its trace. In other words, we want to find the values of $\rho\in(-1,\frac{1}{2})$ such that $$\frac{\lambda_{(1)}+\lambda_{(2)}}{\lambda_1+\lambda_2+\lambda_3}=\frac{\lambda_{(1)}+\lambda_{(2)}}{3}>0.8=\frac{4}{5}$$ where $\lambda_{(j)}$ is the $j$-th eigenvalue of $\boldsymbol{\Sigma}$ in decreasing order.\
+The order of the eigenvalues depends on the values of the parameter, in particular: $$1+\rho\ge1-2\rho \iff \rho\ge0$$.\
+Either $\rho\in(-1,0]$, which implies $$\lambda_{(1)}+\lambda_{(2)}=\lambda_1+\lambda_2=1-2\rho+1+\rho=2-\rho$$ and so we ask that $$2-\rho>\frac{12}{5} \iff \rho<-\frac{2}{5}$$ Or instead $\rho\in[0,\frac{1}{2})$: which implies$$ \lambda_{(1)}+\lambda_{(2)}=2(1+\rho)=2+2\rho$$ and thus the inequality $$2+2\rho>\frac{12}{5} \iff \rho>\frac{1}{5}$$\
+To sum up, the values of the parameter that satisfy the condition are $\rho\in(-1,-\frac{2}{5})\cup(\frac{1}{5},\frac{1}{2})$.
+
+### 2.4 Find the conditional distribution of $Y=(Y_1,Y_2)$ given $X=x$.
+
+To compute the conditional distribution, we make use of the formula
+
+```{=tex}
+\begin{quote}
+\textbf{Proposition:} Let $Z=(X,Y)\sim N_p(\mu,\boldsymbol{\Sigma})$ with 
+$$
+\mu=\begin{bmatrix} \mu_x \\ \mu_y \end{bmatrix} \quad\text{and}\quad
+\boldsymbol{\Sigma}=\begin{bmatrix} \boldsymbol{\Sigma}_{x} & \boldsymbol{\Sigma}_{xy}\\ \boldsymbol{\Sigma}_{yx} & \boldsymbol{\Sigma}_{y} \end{bmatrix}
+$$
+where $\mu_x\in\mathbb{R}^q$, $q<p$, and $\boldsymbol{\Sigma}_{y}$ positive definite. Then the conditional distribution of $Y \mid X=x \sim N_{p-q}(\mu_{y\mid x},\boldsymbol{\Sigma}_{y \mid x})$ with 
+$$
+\mu_{y\mid x}=\mu_y+\boldsymbol{\Sigma}_{yx}\boldsymbol{\Sigma}_{x}^{-1}(x-\mu_x) \quad\text{and}\quad \boldsymbol{\Sigma}_{y\mid x}=\boldsymbol{\Sigma}_{y}-\boldsymbol{\Sigma}_{yx}\boldsymbol{\Sigma}_{x}^{-1}\boldsymbol{\Sigma}_{xy}
+$$
+\end{quote}
+```
+In our case, we have:
+
+```{=tex}
+\begin{itemize}
+\item $Y=(Y_1,Y_2)$ bi-dimensional ($X$ is one-dimensional and consistent in notation)
+\item $\mu_x=1$ and $\mu_y=\begin{bmatrix}0\\2\end{bmatrix}$
+\item $\boldsymbol{\Sigma}_{x}=\begin{bmatrix} 1 \end{bmatrix}$, $\boldsymbol{\Sigma}_{xy}=\begin{bmatrix} -\rho & \rho \end{bmatrix}=\boldsymbol{\Sigma}_{yx}^T$, and $\boldsymbol{\Sigma}_{y}=\begin{bmatrix} 1 & \rho \\ \rho & 1 \end{bmatrix}$
+\end{itemize}
+```
+Since $\boldsymbol{\Sigma}_{22}$ is positive definite (principal sub-matrix of the positive definite $\boldsymbol{\Sigma}$), the proposition can be applied and we find that $(Y_1, Y_2)|X=x\sim N_2(\mu_{y|x}, \boldsymbol{\Sigma}_{y|x})$ with $$
+\begin{aligned}
+\mu_{y\mid x}=&\begin{bmatrix}0\\2\end{bmatrix} + \begin{bmatrix}-\rho\\ \rho\end{bmatrix}(1)^{-1}(x-1)=
+\begin{bmatrix}-\rho(x-1)\\2+\rho(x-1)\end{bmatrix}\\ \\ \\
+\boldsymbol{\Sigma}_{y\mid x}=&
+\begin{bmatrix} 1 & \rho \\ \rho & 1 \end{bmatrix}-
+\begin{bmatrix} -\rho \\ \rho \end{bmatrix}
+\begin{bmatrix} -\rho & \rho \end{bmatrix}=
+\begin{bmatrix} 1-\rho^2 & \rho(1+\rho) \\ \rho(1+\rho) & 1-\rho^2\end{bmatrix}
+\\\\ =&(1+\rho)\begin{bmatrix} 1-\rho & \rho \\ \rho & 1-\rho \end{bmatrix}
+\end{aligned}
+$$ Note that the covariance matrix of the conditional distribution is, as expected, independent of the value $x$, and positive definite given $\rho\in \left(-1,\frac{1}{2}\right)$ (positive trace $tr(\boldsymbol{\Sigma}_{y\mid x})=2(1-\rho)$ and positive determinant $det(\boldsymbol{\Sigma}_{y\mid x})=(1+\rho^2)(1-2\rho)$).
+
+### 2.5 Let $\rho=0.2$, and $\boldsymbol{\Sigma}_y$ and $\mu_y$ be the corresponding covariance matrix and the mean vector of the distribution $(Y_1,Y_2)$ given X=0. Sketch the ellipse $$(y-\mu_y)^T\boldsymbol{\Sigma}_y^{-1}(y-\mu_y)=c^2$$ in the 2-dimensional space $y=(y_1,y_2)$ by setting the constant "$c$" such that the ellipse contains $0.95$ probability with respect to the conditional distribution of $Y$.
+
+First of all, the given expression is well defined since the matrix $\boldsymbol{\Sigma}_y$ - which we called $\boldsymbol{\Sigma}_{y\mid x}$ above - is invertible, since we already commented its positive definiteness.\
+The key result we exploit here is that the random variable associated to the squared Mahalanobis distance $Q=(Y-\mu_y)^T\boldsymbol{\Sigma}_y^{-1}(Y-\mu_y)$, where we use as a notation that $Y=(Y_1,Y_2)$, is distributed as a $\mathcal{X}^2_2$, since $Y\mid X=0\sim N_2(\mu_y,\boldsymbol{\Sigma}_y)$ with:
+
+```{=tex}
+\begin{itemize}
+\item $\mu_y^T=\begin{bmatrix} 0.2 & 1.8 \end{bmatrix}$
+\item $\boldsymbol{\Sigma}_y=\begin{bmatrix} 0.96 & 0.24 \\ 0.24 & 0.96 \end{bmatrix}$
+\end{itemize}
+```
+(by the computation of the previous point with the given value for $\rho$).\
+Therefore we can set $c^2=\chi^2_{2}(0.05)$, upper $5$-percentile of a chi-square distribution with two degrees of freedom, in order to ensure that $1-\alpha=0.95$ of the "probability mass" is contained within the ellipse. More formally, if $E$ is the 2-dimensional area contained within the ellipse: $$
+E=\{y\in\mathbb{R}^2:(y-\mu_y)^T\boldsymbol{\Sigma}_y^{-1}(y-\mu_y)\le\chi^2_{2}(0.05)\}
+$$ then $$
+\mathbb{P}(Y\in E\mid X=0)=\mathbb{P}((Y-\mu_y)^T\boldsymbol{\Sigma}_y^{-1}(Y-\mu_y)\le\chi^2_{2}(0.05)\mid X=0)=0.95
+$$
+
+Let us implement the sketch in R.\
+First of all we compute:
+
+```{r}
+c=sqrt(qchisq(p=0.95, df=2))
+c
+```
+
+The ellipse is centered around the mean $\mu_y$ of the distribution $Y\mid X=0$. Its axes oriented as the eigenvectors $e_1$ and $e_2$ of the variance-covariance matrix $\boldsymbol{\Sigma}_y$ and their respective length is given by $c\sqrt{\lambda_1}$ and $c\sqrt{\lambda_2}$, where $\lambda_1$ and $\lambda_2$ are the eigenvalues of the matrix $\boldsymbol{\Sigma}_y$.
+
+```{r}
+rho=0.2
+mu_y=c(rho,2-rho)
+Sigma_y=matrix(c(1-rho^2,rho+rho^2,rho+rho^2,1-rho^2), nrow=2)
+eig=eigen(Sigma_y, symmetric=T)
+eig$values
+eig$vectors[,1] #first eigenvector
+eig$vector[,2]  #second eigenvector
+```
+
+We note that the eigenvectors, and so the directions of the axes, correspond to those of the two bisectors of the plane (i.e.: $\{(y_1,y_2)\in\mathbb{R}^2:y_1=y_2\}$ and $\{(y_1,y_2)\in\mathbb{R}^2:y_1=-y_2\}$, the first being the direction of the main axis of the ellipse since it's relative to the largest eigenvalue).
+
+Finally, the plot:
+
+```{r, echo = FALSE, message = FALSE}
+ggplot()+
+  geom_ellipse(aes(x0=mu_y[1], y0=mu_y[2], a=eig$values[1], b=eig$values[2], 
+                   angle=acos(eig$vector[1][1])), n = 500000, col="black")+
+  coord_fixed()+
+  geom_abline(slope=1, intercept=mu_y[2]-mu_y[1], col="red", alpha=0.75)+
+  geom_abline(slope=-1, intercept=mu_y[1]+mu_y[2], col="orange", alpha=0.75)+
+  geom_point(aes(mu_y[1], mu_y[2]))+
+  xlab("y_1")+ylab("y_2")
+
+```
+
+## Exercise 3
+
+### 3.1 To equalize out the different types of servings of each food, first divide each variable by weight of the food item. Next, because of the wide variations in the different variables, standardize each variable. Perform Principal Component Analysis on the transformed data.
+
+First of all we import the data and we perform the requested transformations.
+
+```{r}
+nutritional <- read.table("data/nutritional.txt")
+head(nutritional)
+
+nutritional=nutritional/nutritional$weight
+nutritional=nutritional[,-6]
+
+summary(nutritional)
+
+nutritional=scale(nutritional)
+nt=as.data.frame(nutritional)
+
+n <- nrow(nt)
+```
+
+Now we are ready to proceed with the principal component analysis.
+
+```{r}
+nutritional.pca<-prcomp(nt)
+nutritional.pca
+```
+
+### 3.2 Decide how many components to retain in order to achieve a
+
+satisfactory lower-dimensional representation of the data. Justify your answer.
+
+In order to decide how many components to retain, we need to understand how much proportion of the variance each component explains.
+
+```{r, echo = FALSE, message = FALSE}
+summary(nutritional.pca)
+#screeplot(nutritional.pca, type = "lines")
+
+var_expl_df <- data.frame(PC= paste0("PC",1:ncol(nutritional.pca$rotation)),
+              var_expl = (nutritional.pca$sdev)^2/sum((nutritional.pca$sdev)^2))
+lab_var <- as.character(round(var_expl_df$var_expl, 3))
+
+scr_plot_df <- data.frame(PC= paste0("PC",1:ncol(nutritional.pca$rotation)),
+              variances = (nutritional.pca$sdev)^2)
+
+var_expl_df %>% ggplot(aes(x=PC,y=var_expl, group=1, label = lab_var)) +
+  geom_col(fill = "lightblue") +
+  geom_point(size=4) +
+  geom_line() +
+  geom_text(hjust = 0.5, nudge_x = 0.3, size = 4) +
+  labs(title="Scree plot: PCA on scaled data")
+
+scr_plot_df %>% ggplot(aes(x=PC,y=variances, group=1)) +
+  geom_point(size=4) +
+  geom_line() +
+  labs(title="Scree plot: PCA on scaled data")
+  
+```
+
+As we can see, retaining the first three principal components gives us a cumulative proportion of the variance more or less equal to 83%, which is good but not ideal. Anyway, even though the gain of adding the fourth component is not negligible (11%), we choose not to retain it as this goes in favor of dimensionality reduction. Looking at the screeplot, we can observe again that there is not a fully-satisfactory criterion for the number of PC's to retain (i.e. the "elbow rule" does not apply). Indeed, the only "bends" in the screeplot seem to suggest that we either keep one or four PC's and the first solution is not acceptable due to the low variance explained whereas the second solution does not provide a good dimensionality reduction. Hence, as a compromise between variance explained and dimensions retained, we opt to keep the first three PC's.
+
+### 3.3 Give an interpretation to the first two principal components
+
+```{r}
+nutritional.pca$rotation[,1:2]
+```
+
+In order to give an interpretation of the first two principal components we can look at the above table. We start from the first PC: the weights of *fat* and *saturated.fat* are negative and quite high (in absolute value) and almost equal to the value of *food.energy*. This suggests that this component is a measure of how much fat a food contains, which could also explain why *food.energy* has a relevant coefficient: fats account for the most part of calories in a food. In particular, a food with a high percentage of fat (especially if saturated) will score low and viceversa.\
+On the other hand, in the second PC the weights of *protein* and *carbohydrates* are significant and opposite in sign and the weight of *cholesterol* (which is a substance only presents in food of animal origin) has the same sign (negative) of *protein*. Now, since in general a food with animal origin has more protein than carbohydrates and a food with vegetable origin has more carbohydrates than protein, we can think of this PC as an indicator of the origin of the food. In particular, a food of animal origin will score low and a plant based food will score high.\
+
+### 3.4 Identify univariate outliers with respect to the first three principal components, up to 3 per component. These points correspond to foods that are very high or very low in what variable (up to 2 variables per observation)?
+
+To answer this question, a good strategy is to plot the boxplots relative to the first three principal components:
+
+```{r, echo = FALSE, message = FALSE}
+stack_pcs <- stack(as.data.frame(nutritional.pca$x[, c(1,2,3)]))
+
+ggplot(stack_pcs, mapping = aes(x = ind, y = values)) + 
+  geom_boxplot() + stat_boxplot(geom="errorbar", width = 0.2)
+```
+
+As we can see, we have many outliers for each principal component. We focus on the most extreme observation, starting from the first PC:
+
+```{r, echo = FALSE, message = FALSE}
+a=order(abs(nutritional.pca$x[,1]), decreasing = T)[c(1,2,3)]
+nt[c(a[1],a[2],a[3]),]
+```
+
+We can observe that, according to the boxplot, these three outliers score very low on the first PC. Furthermore, they have a very high percentage of fats and even more of saturated fats. These two facts combined match our previous interpretation of the first PC, because we expect that a food with an extreme value of fat is an outlier for the first PC. We note that the first two have identical values, but since we do not know whether the frequency of equal observations is relevant in the general framework of the analysis or not, we do not discard the copies. The third is very similar to the previous two. In general, the possibility of finding almost equal yet not identical observations in the dataset could be related to the fact that the original variables are integers (except for *saturated.fat*) and since they are measured on different weights, they have different approximations propagated by the rescaling (e.g. a 20g food with 0g proteins could actually have 2g of proteins if measured in 100g, nevertheless the rescaling of our data is not able to keep it into account). For the sake of completeness, we also underline the fact that the fourth outlier is actually identical to the third one.
+
+```{r, echo = FALSE, message = FALSE}
+eq=order(abs(nutritional.pca$x[,1]), decreasing = T)[c(3,4)]
+nt[c(eq[1],eq[2]),]
+```
+
+No we move to the second PC:
+
+```{r, echo = FALSE, message = FALSE}
+b=order(abs(nutritional.pca$x[,2]), decreasing = T)[c(1,2,3)]
+nt[c(b[1],b[2],b[3]),]
+```
+
+As we can see, these outliers score very low on the second PC. Moreover, they have a high percentage of proteins and a very high percentage of cholesterol. These facts suggest the animal origin and again match our interpretation of the second PC.\
+Now we conclude with the third PC:
+
+```{r, echo = FALSE, message = FALSE}
+c=order(abs(nutritional.pca$x[,3]), decreasing = T)[c(1,2)]
+nt[c(c[1],c[2]),]
+```
+
+Finally, we can observe that the both observations have all values close to the average, except for *cholesterol* for the first one and *protein* for the second, which are remarkably high. This could explain the fact that they are outliers since both *protein* and *cholesterol* have a relevant weight in the PC3.
+
+We also notice that, for the same reason, observation *866* was also an univariate outlier for the second PC.
+
+We decided to discuss only these two observations, because they are by far the most extreme observations.
+
+To give a visual representation, we mark them in red inside the boxplots:
+
+```{r, echo=FALSE, message=FALSE}
+x_outliers <- c(1,1,1,2,2,2,3,3)
+univ_out <- c(a, b, c)
+lab_out <- as.character(univ_out)
+for (i in 1:(length(univ_out))){
+  y_outliers[i] <- nutritional.pca$x[univ_out[i], x_outliers[i]]
+}
+y_lab <- y_outliers
+y_lab[c(1,3)] <- y_lab[c(1,3)] + c(-0.3, 0.3)
+
+ggplot(stack_pcs, mapping = aes(x = ind, y = values)) + 
+  geom_boxplot() + stat_boxplot(geom="errorbar", width = 0.2) +
+  geom_point(data = as.data.frame(univ_out),
+             mapping = aes(x = x_outliers, y = y_outliers), 
+             col = "red") +
+  geom_text(data = as.data.frame(univ_out),
+            mapping = aes(x = x_outliers, y = y_lab, label = lab_out),
+            hjust = -0.1, nudge_x = 0.05, size = 2, check_overlap = F) +
+  theme(axis.title = element_blank())
+```
+
+### 3.5 Make a 3-d scatter plot with the first three principal components, while color coding these outliers.
+
+As requested we make a 3-d scatterplot with the first three principal components. We plot in red the ones relative to the first, in blue the ones relative to the second and in green the ones relative to the third. We can appreciate that these outliers are potential "3-d outliers", because they are very far from the cloud containing most of the point.
+
+```{r, echo=FALSE, message=FALSE}
+col.ind = rep("white", n)
+col.ind[a] <- "red"
+col.ind[b] <- "blue"
+col.ind[c] <- "green"
+alpha.ind <- rep(0.3, n)
+alpha.ind[univ_out] <- rep(1.0, length(univ_out))
+  
+pl3d <- scatterplot3d(x = nutritional.pca$x[,1], y = nutritional.pca$x[,2], 
+                      z = nutritional.pca$x[,3], asp = 1, angle = 315, pch = 21, 
+                      bg = alpha(col.ind, alpha.ind), xlab = "PC1", 
+                      ylab = "PC2", zlab = "PC3")
+pl3d_coor <- pl3d$xyz.convert(nutritional.pca$x[,1], nutritional.pca$x[,2], 
+                              nutritional.pca$x[,3])
+
+text(pl3d_coor$x[a[1]], pl3d_coor$y[a[1]], labels = lab_out[1], col = "red", 
+     cex = 0.5, pos = 3)
+text(pl3d_coor$x[a[2]], pl3d_coor$y[a[2]], labels = lab_out[2], col = "red", 
+     cex = 0.5, pos = 4)
+text(pl3d_coor$x[a[3]], pl3d_coor$y[a[3]], labels = lab_out[3], col = "red", 
+     cex = 0.5, pos = 1)
+text(pl3d_coor$x[b], pl3d_coor$y[b], labels = lab_out[4:6], col = "blue", 
+     cex = 0.5, pos = 3)
+text(pl3d_coor$x[c], pl3d_coor$y[c], labels = lab_out[7:8], col = "green", 
+     cex = 0.5, pos = 3)
+```
+
+```{r, echo=FALSE, message=FALSE}
+col.ind = rep("white", n)
+col.ind[a] <- "red"
+col.ind[b] <- "blue"
+col.ind[c] <- "green"
+alpha.ind <- rep(0.3, n)
+alpha.ind[univ_out] <- rep(1.0, length(univ_out))
+  
+pl3d <- scatterplot3d(x = nutritional.pca$x[,1], y = nutritional.pca$x[,2], 
+                      z = nutritional.pca$x[,3], 
+              asp = 1, angle = 225, pch = 21, bg = alpha(col.ind, alpha.ind), 
+              xlab = "PC1", ylab = "PC2", zlab = "PC3")
+pl3d_coor <- pl3d$xyz.convert(nutritional.pca$x[,1], nutritional.pca$x[,2], 
+                              nutritional.pca$x[,3])
+
+text(pl3d_coor$x[a[1]], pl3d_coor$y[a[1]], labels = lab_out[1], col = "red", 
+     cex = 0.5, pos = 3)
+text(pl3d_coor$x[a[2]], pl3d_coor$y[a[2]], labels = lab_out[2], col = "red", 
+     cex = 0.5, pos = 4)
+text(pl3d_coor$x[a[3]], pl3d_coor$y[a[3]], labels = lab_out[3], col = "red", 
+     cex = 0.5, pos = 1)
+text(pl3d_coor$x[b], pl3d_coor$y[b], labels = lab_out[4:6], col = "blue", 
+     cex = 0.5, pos = 3)
+text(pl3d_coor$x[c], pl3d_coor$y[c], labels = lab_out[7:8], col = "green", 
+     cex = 0.5, pos = 3)
+```
+
+```{r, echo=FALSE, message=FALSE}
+col.ind = rep("white", n)
+col.ind[a] <- "red"
+col.ind[b] <- "blue"
+col.ind[c] <- "green"
+alpha.ind <- rep(0.3, n)
+alpha.ind[univ_out] <- rep(1.0, length(univ_out))
+  
+pl3d <- scatterplot3d(x = nutritional.pca$x[,1], y = nutritional.pca$x[,2], 
+                      z = nutritional.pca$x[,3], 
+              asp = 1, angle = 25, pch = 21, bg = alpha(col.ind, alpha.ind), 
+              xlab = "PC1", ylab = "PC2", zlab = "PC3")
+pl3d_coor <- pl3d$xyz.convert(nutritional.pca$x[,1], nutritional.pca$x[,2], 
+                              nutritional.pca$x[,3])
+
+text(pl3d_coor$x[a[1]], pl3d_coor$y[a[1]], labels = lab_out[1], col = "red", 
+     cex = 0.5, pos = 3)
+text(pl3d_coor$x[a[2]], pl3d_coor$y[a[2]], labels = lab_out[2], col = "red", 
+     cex = 0.5, pos = 4)
+text(pl3d_coor$x[a[3]], pl3d_coor$y[a[3]], labels = lab_out[3], col = "red", 
+     cex = 0.5, pos = 1)
+text(pl3d_coor$x[b], pl3d_coor$y[b], labels = lab_out[4:6], col = "blue", 
+     cex = 0.5, pos = 3)
+text(pl3d_coor$x[c], pl3d_coor$y[c], labels = lab_out[7:8], col = "green", 
+     cex = 0.5, pos = 3)
+```
+
+### 3.6 Investigate multivariate normality through the first three principal components.
+
+To answer this question, we plot in three different graphs the theoretical quantile of a normal distribution in correspondence quantile followed by the first three principal components.
+
+```{r, echo=FALSE, message=FALSE}
+col.ind <- rep("black", n)
+col.ind[a] <- "red"
+col.ind[b] <- "blue"
+col.ind[c] <- "green"
+lab.ind <- rep("", n)
+lab.ind[univ_out] <- as.character(univ_out)
+
+S<-cov(nutritional.pca$x[,c(1,2,3)])
+x.bar <- c(0.0,0.0,0.0)
+d = mahalanobis(nutritional.pca$x[,c(1,2,3)], center = x.bar, cov = S);
+
+dist=as.data.frame(cbind(d,col.ind, lab.ind))
+dist[,1]=as.numeric(dist[,1])
+dist=arrange(dist, dist$d)
+
+ggplot(data = as.data.frame(d), aes(x = qchisq(ppoints(d), df = p), 
+                                    y = dist[,1], label = dist[,3])) + 
+ geom_point(color = dist[,2]) + geom_abline(intercept = 0, slope = 1, 
+                                            col = "red", lwd = 1) + 
+  geom_text(vjust = 1.2, nudge_y = 5, size = 2, check_overlap = F) +
+  ggtitle("Chi-squared QQ-plot of\n squared generalized distancees")
+```
+
+Looking at the above plot, we do not have sufficient statistical evidence to assess multivariate normality of the data. Indeed, the pattern at the top right seems to suggest that the largest values of the squared Mahalanobis distances are more spread out than for a $\chi^2_3$-distribution, i.e. the tail is heavier. This indicates that the multivariate distribution of our data is more right skewed than you would expect to see with a multivariate normal.
+
+We can find a further confirmation by studying the univariate normality of the first three PC's, since a multivariate Gaussian requires each marginal to be Gaussian too. We perform it by means of the QQ-plot for each PC:
+
+```{r, echo=FALSE, message=FALSE}
+#PC1
+ggplot(as.data.frame(nutritional.pca$x[,1]), 
+       aes(sample = nutritional.pca$x[,1])) +
+  geom_qq() + 
+  geom_qq_line(col = "red") +
+    ggtitle("Normal Q-Q Plot of PC1\n") +
+    labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
+    theme(plot.title = element_text(hjust = 0.5))
+#PC2
+ggplot(as.data.frame(nutritional.pca$x[,2]), 
+       aes(sample = nutritional.pca$x[,2])) +
+  geom_qq() + 
+  geom_qq_line(col = "red") +
+    ggtitle("Normal Q-Q Plot of PC2\n") +
+    labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
+    theme(plot.title = element_text(hjust = 0.5))
+#PC3
+ggplot(as.data.frame(nutritional.pca$x[,3]), 
+       aes(sample = nutritional.pca$x[,3])) +
+  geom_qq() + 
+  geom_qq_line(col = "red") +
+    ggtitle("Normal Q-Q Plot of PC3\n") +
+    labs(x = "Theoretical Quantiles", y = "Sample Quantiles") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+In particular in the first two plots, there is a high evidence of non normality, since the trend of the extreme quantiles moves away from the theoretical normal one. The third appears less pathological, but it still displays a few controversial features that would require further investigation.
+
+### 3.7 Find multivariate outliers through the first three principal components, up to 5 in total. Are they the most extreme observations with respect to the 6 original variables?
+
+We start by looking for the multivariate outliers with respect to the first three principal components, by looking for their indexes.
+
+```{r, echo=FALSE, message=FALSE}
+a=order(d,decreasing = T)[c(1:5)]
+a
+```
+
+```{r, echo=FALSE, message=FALSE}
+q = (n-0.5)/n
+col_ind <- rep("black", n)
+col_ind[a] <- "red"
+lab <- rep("", n)
+lab[a] <- as.character(a)
+alp <- rep(0.5, n)
+alp[a] <- rep(1.0, length(a))
+
+x = 1:length(d)
+ggplot(as.data.frame(d), aes(x = x, y = d, label = lab)) + 
+  geom_point(pch = 16, col = col_ind, alpha = alp) + 
+  geom_text(vjust = 0.5, nudge_y = 5, size = 2, check_overlap = F) +
+  geom_hline(yintercept = qchisq(q, df = 3), col = "blue", lty = 2) + 
+  ggtitle("Multivariate outliers") + 
+  ylab("squared Mahalonobis distances") + 
+  xlab("indexes") + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Then, we can compare them graphically with the outliers of the original variables.
+
+```{r, echo=FALSE, message=FALSE}
+q = (n-0.5)/n
+
+S<-cov(nt)
+x.bar <- colMeans(nt)
+d = mahalanobis(nt, center = x.bar, cov = S);
+
+col_ind <- rep("black", n)
+col_ind[a] <- "red"
+lab <- rep("", n)
+lab[a] <- as.character(a)
+alp <- rep(0.5, n)
+alp[a] <- rep(1.0, length(a))
+
+x = 1:length(d)
+ggplot(as.data.frame(d), aes(x = x, y = d, label = lab)) + 
+  geom_point(pch = 16, col = col_ind, alpha = alp) + 
+  geom_text(vjust = 0.5, nudge_y = 8, size = 2, check_overlap = F) +
+  geom_hline(yintercept = qchisq(q, df = 3), col = "blue", lty = 2) + 
+  ggtitle("Multivariate outliers") + 
+  ylab("squared Mahalonobis distances") + 
+  xlab("indexes") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+We can appreciate that all the multivariate outliers detected for the first three principal component are also detected when we refer to the original variables. Meanwhile, it can be noticed that the second and the third most extreme observations according to the original variables and their relative squared Mahalanobis distance are not in the five most extreme observations according to the first three PC's and their relative distance. This can be due to the fact that for these observations the remaining PC's play a central role in explaining their variability (keeping in mind that the first 3 only account for the 83% of the total variation).
+
+We can now detect the multivariate outliers for the original variables that are not among the five most extreme outliers for the first three PCs. Since:
+
+```{r, echo=FALSE, message=FALSE}
+order(d, decreasing = T)[6]
+```
+
+we have four of those outliers, namely:
+
+```{r, echo=FALSE, message=FALSE}
+u <- order(d, decreasing = T)[c(2:5)]
+u
+```
+
+To conclude, we represent also them in the above plot.
+
+```{r, echo=FALSE, message=FALSE}
+col_ind <- rep("black", n)
+col_ind[a] <- "red"
+col_ind[u] <- "green"
+lab <- rep("", n)
+lab[a] <- as.character(a)
+lab[u[1]] <- "438 440 429 439"
+alp <- rep(0.5, n)
+alp[a] <- rep(1.0, length(a))
+alp[u] <- rep(1.0, length(u))
+
+x = 1:length(d)
+ggplot(as.data.frame(d), aes(x = x, y = d, label = lab)) + 
+  geom_point(pch = 16, col = col_ind, alpha = alp) + 
+  geom_text(vjust = 0.5, nudge_y = 8, size = 2, check_overlap = F) +
+  geom_hline(yintercept = qchisq(q, df = 3), col = "blue", lty = 2) + 
+  ggtitle("Multivariate outliers") + 
+  ylab("squared Mahalonobis distances") + 
+  xlab("indexes") + 
+  theme(plot.title = element_text(hjust = 0.5))
+```
